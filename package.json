@@ -1,0 +1,36 @@
+{
+  "name": "make-server",
+  "version": "1.0.0",
+  "description": "Tool to create Node Environment setup within minutes.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theinfosecguy/create-express-app.git"
+  },
+  "keywords": [
+    "node",
+    "express",
+    "js",
+    "ejs",
+    "server"
+  ],
+  "author": "PK",
+  "bin": {
+    "make-server": "./bin/create_server.js"
+  },
+  "preferGlobal": true,
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/theinfosecguy/create-express-app/issues"
+  },
+  "homepage": "https://github.com/theinfosecguy/create-express-app#readme",
+  "dependencies": {
+    "chalk": "^4.1.0",
+    "commander": "^7.1.0",
+    "mkdirp": "^1.0.4",
+    "path": "^0.12.7"
+  }
+}
