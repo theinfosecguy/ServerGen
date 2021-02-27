@@ -7,8 +7,8 @@ const pkg = require('../package.json');
 const path = require('path');
 const mkdirp = require('mkdirp');
 const cwd = process.cwd();
-
-const fs_helper = require('../lib/createFolder');
+const fs = require('fs-extra');
+const fs_helper = require('../lib/build_helper');
 
 program
   .version(pkg.version)
@@ -21,6 +21,7 @@ program
 const options = program.opts();
 const appName = options.name;
 const folderDir = path.join(cwd, appName);
+const templatesDir = path.join(__dirname, "..",'templates', "express");
 
 // Create Directory with the App Name
 mkdirp.sync(folderDir);
@@ -31,3 +32,10 @@ if(options.mvc != 0){
     fs_helper.createDir(folderDir, "model");
     fs_helper.createDir(folderDir, "controllers");
 }
+
+function createIndexJS(){
+  let basePath = path.join(templatesDir, "index.js");
+  fs_helper.buildFilewithContents(basePath, folderDir, "index.js");
+}
+
+createIndexJS();
