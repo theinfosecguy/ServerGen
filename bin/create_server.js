@@ -31,7 +31,4 @@ mkdirp.sync(folderDir);
 // Create views for MVC if MVC Flag is set
 //Todo - Views setup
 
-
-options.framework == 'node' ? file_creator.createNodeApp(templatesDirNode, folderDir) : file_creator.createExpressApp(templatesDirExpress, folderDir)
-
-file_creator.createExpressApp(templatesDirExpress, folderDir);
+options.framework == 'node'? file_creator.createNodeApp(templatesDirNode, folderDir) : file_creator.createExpressApp(templatesDirExpress, folderDir)
