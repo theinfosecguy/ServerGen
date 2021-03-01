@@ -15,7 +15,7 @@ program
   .version(pkg.version)
   .option('-f, --framework <type>', 'Enter Name of Framework')
   .requiredOption('-n, --name <type>', 'Enter Name of App')
-  .option('--mvc', 'Enter 0 if MVC Dir Structure is not needed')
+  .option('--views <type>', 'Which View Engine to use!')
   .parse(process.argv)
 
 
@@ -28,9 +28,10 @@ const templatesDirNode = path.join(__dirname, "..",'templates', "node");
 // Create Directory with the App Name
 mkdirp.sync(folderDir);
 
-// Create Folders for MVC if MVC Flag is set
-(options.mvc) ? file_creator.generateMVC(folderDir) : null;
+// Create views for MVC if MVC Flag is set
+//Todo - Views setup
 
-options.framework == 'express' ? file_creator.createExpressApp(templatesDirExpress, folderDir) : file_creator.createNodeApp(templatesDirExpress, folderDir)
+
+options.framework == 'node' ? file_creator.createNodeApp(templatesDirNode, folderDir) : file_creator.createExpressApp(templatesDirExpress, folderDir)
 
 file_creator.createExpressApp(templatesDirExpress, folderDir);
