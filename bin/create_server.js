@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-console.log("Project on branch by Keshav started !");
-
 const program = require("commander");
 const pkg = require("../package.json");
 const path = require("path");
@@ -16,6 +14,7 @@ program
   .option("-f, --framework <type>", "Enter Name of Framework")
   .requiredOption("-n, --name <type>", "Enter Name of App")
   .option("-v --view <type>", "Which View Engine to use!")
+  .option("--config ", "Install Mongoose & the Folder Directory for it")
   .parse(process.argv);
 
 const options = program.opts();
@@ -33,4 +32,12 @@ options.framework == "node"
   : file_creator.createExpressApp(templatesDirExpress, folderDir, appName);
 
 // Handle View Flag
-file_creator.handleViews(folderDir, viewsDir, options.view);
+options.view
+  ? file_creator.handleViews(folderDir, viewsDir, options.view)
+  : null;
+
+options.Config
+  ? file_creator.handleConfig(folderDir, templatesDirExpress)
+  : null;
+
+file_creator.addGitIgnore(folderDir, templatesDirExpress);
