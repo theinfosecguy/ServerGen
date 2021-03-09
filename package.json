@@ -1,14 +1,14 @@
 {
-  "name": "make-server",
+  "name": "ServerX",
   "version": "1.0.0",
-  "description": "Tool to create Node Environment setup within minutes.",
+  "description": "Tool to create Node/Express Environment setup within minutes.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theinfosecguy/create-express-app.git"
+    "url": "git+https://github.com/theinfosecguy/serverX.git"
   },
   "keywords": [
     "node",
@@ -17,16 +17,16 @@
     "ejs",
     "server"
   ],
-  "author": "PK",
+  "author": "Keshav Malik",
   "bin": {
-    "make-server": "./bin/create_server.js"
+    "serverx": "./bin/serverX.js"
   },
   "preferGlobal": true,
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/theinfosecguy/create-express-app/issues"
+    "url": "https://github.com/theinfosecguy/serverX/issues"
   },
-  "homepage": "https://github.com/theinfosecguy/create-express-app#readme",
+  "homepage": "https://github.com/theinfosecguy/serverX#readme",
   "dependencies": {
     "chalk": "^4.1.0",
     "commander": "^7.1.0",
