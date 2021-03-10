@@ -16,7 +16,7 @@ program
   .option("-f, --framework <type>", "Enter Name of Framework: Node | Express")
   .requiredOption("-n, --name <type>", "Enter Name of App")
   .option("-v --view <type>", "Name of View Engine: Pug | Jade | EJS | HBS")
-  .option("--config ", "Install Mongoose & the Folder Directory for it")
+  .option("--db ", "Install Mongoose & the Folder Directory for it")
   .parse(process.argv);
 
 const options = program.opts();
@@ -31,16 +31,20 @@ fs_helper.buildFolderforApp(folderDir);
 
 options.framework == "node"
   ? file_creator.createNodeApp(templatesDirNode, folderDir, appName)
-  : file_creator.createExpressApp(templatesDirExpress, folderDir, appName);
+  : file_creator.createExpressApp(
+      templatesDirExpress,
+      folderDir,
+      appName,
+      options.view,
+      options.Db
+    );
 
 // Handle View Flag
 options.view
   ? file_creator.handleViews(folderDir, viewsDir, options.view)
   : null;
 
-options.Config
-  ? file_creator.handleConfig(folderDir, templatesDirExpress)
-  : null;
+options.db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
 
 file_creator.addGitIgnore(folderDir, templatesDirExpress);
 displayer.endMessage(appName);
