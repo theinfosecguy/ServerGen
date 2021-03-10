@@ -1,5 +1,5 @@
 {
-  "name": "ServerX",
+  "name": "serverx",
   "version": "1.0.0",
   "description": "Tool to create Node/Express Environment setup within minutes.",
   "main": "index.js",
