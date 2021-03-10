@@ -4,12 +4,11 @@ const chalk = require("chalk");
 const program = require("commander");
 const pkg = require("../package.json");
 const path = require("path");
-const mkdirp = require("mkdirp");
 const cwd = process.cwd();
-const fs = require("fs-extra");
 const fs_helper = require("../lib/build_helper");
 const file_creator = require("../lib/file_generator");
 const displayer = require("../lib/log_display");
+const { exec } = require("child_process");
 
 program
   .version(pkg.version)
@@ -54,3 +53,18 @@ options.db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
 
 file_creator.addGitIgnore(folderDir, templatesDirExpress);
 displayer.endMessage(appName);
+
+console.log(folderDir);
+
+console.log("Installing required NPM Packages. This might take a while.\n");
+exec(
+  `npm install`,
+  {
+    cwd: folderDir,
+  },
+  function (err) {
+    if (err) {
+      console.log(chalk.bold.red("Failed to install packages"));
+    }
+  }
+);
