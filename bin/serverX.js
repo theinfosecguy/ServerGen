@@ -30,7 +30,13 @@ const viewsDir = path.join(__dirname, "..", "templates", "express", "views");
 fs_helper.buildFolderforApp(folderDir);
 
 options.framework == "node"
-  ? file_creator.createNodeApp(templatesDirNode, folderDir, appName)
+  ? file_creator.createNodeApp(
+      templatesDirNode,
+      folderDir,
+      appName,
+      options.view,
+      options.Db
+    )
   : file_creator.createExpressApp(
       templatesDirExpress,
       folderDir,
