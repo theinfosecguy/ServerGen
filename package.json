@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theinfosecguy/serverX.git"
+    "url": "git+https://github.com/theinfosecguy/ServerGen.git"
   },
   "keywords": [
     "node",
@@ -24,9 +24,9 @@
   "preferGlobal": true,
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/theinfosecguy/serverX/issues"
+    "url": "https://github.com/theinfosecguy/ServerGen/issues"
   },
-  "homepage": "https://github.com/theinfosecguy/serverX#readme",
+  "homepage": "https://github.com/theinfosecguy/ServerGen#readme",
   "dependencies": {
     "chalk": "^4.1.0",
     "commander": "^7.1.0",
