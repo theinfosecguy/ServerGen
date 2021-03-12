@@ -1,5 +1,5 @@
 {
-  "name": "serverx",
+  "name": "servergen",
   "version": "1.0.0",
   "description": "Tool to create Node/Express Environment setup within minutes.",
   "main": "index.js",
@@ -19,7 +19,7 @@
   ],
   "author": "Keshav Malik",
   "bin": {
-    "serverx": "./bin/serverX.js"
+    "servergen": "./bin/servergen.js"
   },
   "preferGlobal": true,
   "license": "MIT",
