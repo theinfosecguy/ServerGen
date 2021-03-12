@@ -1,5 +1,5 @@
 {
-  "name": "serverx",
+  "name": "servergen",
   "version": "1.0.0",
   "description": "Tool to create Node/Express Environment setup within minutes.",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theinfosecguy/serverX.git"
+    "url": "git+https://github.com/theinfosecguy/ServerGen.git"
   },
   "keywords": [
     "node",
@@ -19,14 +19,14 @@
   ],
   "author": "Keshav Malik",
   "bin": {
-    "serverx": "./bin/serverX.js"
+    "servergen": "./bin/servergen.js"
   },
   "preferGlobal": true,
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/theinfosecguy/serverX/issues"
+    "url": "https://github.com/theinfosecguy/ServerGen/issues"
   },
-  "homepage": "https://github.com/theinfosecguy/serverX#readme",
+  "homepage": "https://github.com/theinfosecguy/ServerGen#readme",
   "dependencies": {
     "chalk": "^4.1.0",
     "commander": "^7.1.0",
