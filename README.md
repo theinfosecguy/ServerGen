@@ -1,5 +1,5 @@
 <h1 align=center>
-ServerGen - Setup Server & MVC within seconds<br>
+ServerGen - Setup Node/Express Server & MVC within seconds<br>
 <a href> <img src="https://user-images.githubusercontent.com/33570148/110940836-89153e00-835d-11eb-9fa7-2cc1e46834ff.png" height=350/></a>
 </h1>
 
@@ -49,8 +49,9 @@ Options:
 ## People 🦾
 
 The original author of ServerX is [Keshav Malik](https://github.com/theinfosecguy)
+Lead Contributor - [Prachi Jain](https://github.com/pjain312) 🎉
 
-[Checkout the list of these amazing contributors](https://github.com/theinfosecguy/servergen/graphs/contributors)
+[Checkout the list of these amazing contributors](https://github.com/theinfosecguy/servergen/graphs/contributors) 😁
 
 ## License
 
