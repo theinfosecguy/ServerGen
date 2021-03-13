@@ -16,7 +16,7 @@ Before installing, [download and install Node.js](https://nodejs.org/en/download
 $ npm install servergen
 ```
 
-NPM JS Package Link : [ServerX](https://www.npmjs.com/package/servergen)
+NPM JS Package Link : [ServerGen](https://www.npmjs.com/package/servergen)
 
 ## Features 🎉
 
