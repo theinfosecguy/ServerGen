@@ -1,6 +1,6 @@
 {
   "name": "servergen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tool to create Node/Express Environment setup within minutes.",
   "main": "index.js",
   "scripts": {
