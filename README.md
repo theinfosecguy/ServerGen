@@ -42,17 +42,6 @@ Options:
   -h, --help              display help for command
 ```
 
-## Contributing 📑
-
-[Contributing Guide](Contributing.md)
-
-## People 🦾
-
-The original author of ServerX is [Keshav Malik](https://github.com/theinfosecguy) <br>
-Lead Contributor - [Prachi Jain](https://github.com/pjain312) 🎉
-
-[Checkout the list of these amazing contributors](https://github.com/theinfosecguy/servergen/graphs/contributors) 😁
-
 ## License
 
   [MIT](LICENSE)
