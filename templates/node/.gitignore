@@ -105,5 +105,3 @@ dist
 
 # Prettier File
 .prettierrc
-
-package-lock.json
