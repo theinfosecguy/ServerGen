@@ -9,6 +9,8 @@ const fs_helper = require("../lib/build_helper");
 const file_creator = require("../lib/file_generator");
 const displayer = require("../lib/log_display");
 const { exec } = require("child_process");
+const fileName = require("../lib/fileName");
+const util = require("util");
 
 program
   .version(pkg.version)
@@ -19,7 +21,7 @@ program
   .parse(process.argv);
 
 const options = program.opts();
-const appName = options.name;
+const appName = fileName.cleanAppName(options.name);
 const folderDir = path.join(cwd, appName);
 const templatesDirExpress = path.join(__dirname, "..", "templates", "express");
 const templatesDirNode = path.join(__dirname, "..", "templates", "node");
@@ -45,26 +47,22 @@ options.framework == "node"
     );
 
 // Handle View Flag
-options.view
-  ? file_creator.handleViews(folderDir, viewsDir, options.view)
-  : null;
+file_creator.handleViews(folderDir, viewsDir, options.view)
 
 options.db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
 
 file_creator.addGitIgnore(folderDir, templatesDirExpress);
-displayer.endMessage(appName);
 
-console.log(folderDir);
-
+displayer.beginMessage(appName);
 console.log("Installing required NPM Packages. This might take a while.\n");
-exec(
-  `npm install`,
-  {
-    cwd: folderDir,
-  },
-  function (err) {
-    if (err) {
-      console.log(chalk.bold.red("Failed to install packages"));
-    }
-  }
-);
+
+const execPromise = util.promisify(exec);
+
+execPromise(`cd ${folderDir} && npm install`)
+  .then(() => {
+    console.log(chalk.green("\nNPM Packages Installed Successfully"));
+    displayer.endMessage(appName);
+  })
+  .catch(err => {
+    console.log(chalk.red("\nError: " + err));
+  });
