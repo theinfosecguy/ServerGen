@@ -52,9 +52,10 @@ file_creator.handleViews(folderDir, viewsDir, options.view)
 options.Db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
 
 file_creator.addGitIgnore(folderDir, templatesDirExpress);
+file_creator.addDockerSupport(folderDir, templatesDirExpress);
 
 displayer.beginMessage(appName);
-console.log("Installing required NPM Packages. This might take a while.\n");
+console.log("Installing required NPM Packages. This might take a while.");
 
 const execPromise = util.promisify(exec);
 
