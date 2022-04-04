@@ -20,12 +20,19 @@ NPM JS Package Link : [ServerGen](https://www.npmjs.com/package/servergen)
 
 ## Features 🎉
 
-1. MVC Directory Structure 
+1. MVC Directory Structure
 2. Multiple View Engine ( Pug, EJS, HBS )
-3. Gitignore File 
+3. Gitignore & Docker Support Added
 4. Express/Node Server Boilerplate
-5. Simple & Easy
+5. Mongoose Boilerplate for MongoDB
+
 What else you need? 🤫
+
+## Future Scope
+
+1. Add Swagger Documentation
+2. Add Passport Authentication
+3. Sequalize ORM for MySQL & PostgreSQL
 
 ## Usage ✏
 
@@ -35,13 +42,13 @@ Options:
 
 ```
   -V, --version           output the version number
-  -f, --framework <type>  Enter Name of Framework: Node | Express       
+  -f, --framework <type>  Enter Name of Framework: Node | Express
   -n, --name <type>       Enter Name of App
-  -v --view <type>        Name of View Engine: Pug | Jade | EJS | HBS   
+  -v --view <type>        Name of View Engine: Pug | Jade | EJS | HBS
   --db                    Install Mongoose & the Folder Directory for it
   -h, --help              display help for command
 ```
 
 ## License
 
-  [MIT](LICENSE)
+[MIT](LICENSE)
