@@ -49,7 +49,7 @@ options.framework == "node"
 // Handle View Flag
 file_creator.handleViews(folderDir, viewsDir, options.view)
 
-options.db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
+options.Db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
 
 file_creator.addGitIgnore(folderDir, templatesDirExpress);
 
@@ -65,4 +65,4 @@ execPromise(`cd ${folderDir} && npm install`)
   })
   .catch(err => {
     console.log(chalk.red("\nError: " + err));
-  });
+});
