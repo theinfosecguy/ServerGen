@@ -1,6 +1,6 @@
 const mongoose = require("mongoose"); // Required Library
 
-mongoose.connect("mongodb://localhost/demo_db"); //Connect to DB
+mongoose.connect("mongodb://localhost/demo_db", { useNewUrlParser: true, useUnifiedTopology: true });
 
 // Acquire the connection - To access DB
 const db = mongoose.connection;
