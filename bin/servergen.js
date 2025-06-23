@@ -27,32 +27,41 @@ const templatesDirExpress = path.join(__dirname, "..", "templates", "express");
 const templatesDirNode = path.join(__dirname, "..", "templates", "node");
 const viewsDir = path.join(__dirname, "..", "templates", "express", "views");
 
-// Create Directory with the App Name
-fs_helper.buildFolderforApp(folderDir);
+try {
+  // Create Directory with the App Name
+  fs_helper.buildFolderforApp(folderDir);
 
-options.framework == "node"
-  ? file_creator.createNodeApp(
+  if (options.framework === "node") {
+    file_creator.createNodeApp(
       templatesDirNode,
       folderDir,
       appName,
       options.view,
       options.Db
-    )
-  : file_creator.createExpressApp(
+    );
+  } else {
+    file_creator.createExpressApp(
       templatesDirExpress,
       folderDir,
       appName,
       options.view,
       options.Db
     );
+  }
 
-// Handle View Flag
-file_creator.handleViews(folderDir, viewsDir, options.view)
+  // Handle View Flag
+  file_creator.handleViews(folderDir, viewsDir, options.view);
 
-options.Db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
+  if (options.Db) {
+    file_creator.handleConfig(folderDir, templatesDirExpress);
+  }
 
-file_creator.addGitIgnore(folderDir, templatesDirExpress);
-file_creator.addDockerSupport(folderDir, templatesDirExpress);
+  file_creator.addGitIgnore(folderDir, templatesDirExpress);
+  file_creator.addDockerSupport(folderDir, templatesDirExpress);
+} catch (err) {
+  console.error(chalk.red("Error: " + err.message));
+  process.exit(1);
+}
 
 displayer.beginMessage(appName);
 console.log("Installing required NPM Packages. This might take a while.");
@@ -66,4 +75,5 @@ execPromise(`cd ${folderDir} && npm install`)
   })
   .catch(err => {
     console.log(chalk.red("\nError: " + err));
-});
+    process.exit(1);
+  });
