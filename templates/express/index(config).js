@@ -1,3 +1,8 @@
+/**
+ * Express application entry point with MongoDB configuration.
+ * @description Main server configuration with CORS, routing, and database setup.
+ */
+
 const express = require('express');
 const app = express();
 const port = 3000;
