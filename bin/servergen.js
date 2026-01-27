@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+/**
+ * ServerGen CLI - Generates Node.js/Express application scaffolding.
+ * @module bin/servergen
+ */
+
 const chalk = require('chalk');
 const program = require('commander');
 const pkg = require('../package.json');

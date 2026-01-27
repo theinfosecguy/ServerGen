@@ -1,9 +1,11 @@
-const mongoose = require('mongoose'); // Required Library
+/**
+ * MongoDB connection configuration using Mongoose.
+ * @description Establishes connection to MongoDB database.
+ */
 
-mongoose.connect('mongodb://localhost/demo_db', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const mongoose = require('mongoose');
+
+mongoose.connect('mongodb://localhost/demo_db');
 
 // Acquire the connection - To access DB
 const db = mongoose.connection;

@@ -1,3 +1,8 @@
+/**
+ * Express application entry point.
+ * @description Main server configuration with CORS and routing setup.
+ */
+
 const express = require('express');
 const app = express();
 const port = 3000;
