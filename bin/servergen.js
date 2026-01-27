@@ -17,7 +17,7 @@ program
   .option('-f, --framework <type>', 'Enter Name of Framework: Node | Express')
   .requiredOption('-n, --name <type>', 'Enter Name of App')
   .option('-v --view <type>', 'Name of View Engine: Pug | Jade | EJS | HBS')
-  .option('--db ', 'Install Mongoose & the Folder Directory for it')
+  .option('--db', 'Install Mongoose & the Folder Directory for it')
   .parse(process.argv);
 
 const options = program.opts();
@@ -50,20 +50,22 @@ options.framework == 'node'
       folderDir,
       appName,
       options.view,
-      options.Db
+      options.db
     )
   : file_creator.createExpressApp(
       templatesDirExpress,
       folderDir,
       appName,
       options.view,
-      options.Db
+      options.db
     );
 
 // Handle View Flag
 file_creator.handleViews(folderDir, viewsDir, options.view);
 
-options.Db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
+if (options.db) {
+  file_creator.handleConfig(folderDir, templatesDirExpress);
+}
 
 // Use correct template directory based on framework
 const activeTemplatesDir = options.framework === 'node' ? templatesDirNode : templatesDirExpress;
