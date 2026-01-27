@@ -4,8 +4,7 @@ const port = 3000;
 const cors = require('cors');
 require('./config/mongoose');
 
-// If views flag is true, View Engine will be set here.
-null;
+// Views
 
 app.use(cors());
 app.use(express.json());
