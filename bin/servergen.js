@@ -21,6 +21,20 @@ program
   .parse(process.argv);
 
 const options = program.opts();
+
+const VALID_FRAMEWORKS = ['node', 'express'];
+const VALID_VIEWS = ['ejs', 'jade', 'pug', 'hbs'];
+
+if (options.framework && !VALID_FRAMEWORKS.includes(options.framework)) {
+  console.error(chalk.red(`Invalid framework: ${options.framework}. Valid options: ${VALID_FRAMEWORKS.join(', ')}`));
+  process.exit(1);
+}
+
+if (options.view && !VALID_VIEWS.includes(options.view)) {
+  console.error(chalk.red(`Invalid view engine: ${options.view}. Valid options: ${VALID_VIEWS.join(', ')}`));
+  process.exit(1);
+}
+
 const appName = fileName.cleanAppName(options.name);
 const folderDir = path.join(cwd, appName);
 const templatesDirExpress = path.join(__dirname, '..', 'templates', 'express');
