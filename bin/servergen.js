@@ -51,8 +51,10 @@ file_creator.handleViews(folderDir, viewsDir, options.view);
 
 options.Db ? file_creator.handleConfig(folderDir, templatesDirExpress) : null;
 
-file_creator.addGitIgnore(folderDir, templatesDirExpress);
-file_creator.addDockerSupport(folderDir, templatesDirExpress);
+// Use correct template directory based on framework
+const activeTemplatesDir = options.framework === 'node' ? templatesDirNode : templatesDirExpress;
+file_creator.addGitIgnore(folderDir, activeTemplatesDir);
+file_creator.addDockerSupport(folderDir, activeTemplatesDir);
 
 displayer.beginMessage(appName);
 console.log('Installing required NPM Packages. This might take a while.');
