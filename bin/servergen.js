@@ -16,6 +16,7 @@ import * as fsHelper from '../lib/build_helper.js';
 import * as fileCreator from '../lib/file_generator.js';
 import * as displayer from '../lib/log_display.js';
 import * as fileName from '../lib/fileName.js';
+import * as logger from '../lib/logger.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,14 +31,25 @@ program
   .requiredOption('-n, --name <type>', 'Enter Name of App')
   .option('-v --view <type>', 'Name of View Engine: Pug | Jade | EJS | HBS')
   .option('--db', 'Install Mongoose & the Folder Directory for it')
+  .option('-p, --port <number>', 'Set default port for the app', '3000')
+  .option('--debug', 'Enable debug logging')
   .parse(process.argv);
 
 const options = program.opts();
+
+if (options.debug) {
+  logger.enableDebug();
+}
+
+logger.debug('CLI options received', options);
 
 const validationResult = validateOptions(options, config.validation);
 handleValidationErrors(validationResult);
 
 const appName = fileName.cleanAppName(options.name);
+const port = parseInt(options.port, 10) || 3000;
+
+logger.debug('Parsed configuration', { appName, port, framework: options.framework });
 
 /**
  * Main function to run the application generator.
@@ -49,18 +61,21 @@ const main = async () => {
       framework: options.framework,
       view: options.view,
       db: options.db,
+      port,
       config,
     },
     {
       fsHelper,
       fileCreator,
       displayer,
+      logger,
     }
   );
 
   try {
     await generator.generate();
   } catch (err) {
+    logger.error('Generation failed', err);
     process.exit(1);
   }
 };
