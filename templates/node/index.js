@@ -16,7 +16,7 @@ const server = http.createServer((req, res) => {
   res.setHeader('Content-Type', 'text/plain');
 
   // Routing in NodeJS
-  var url = req.url;
+  const url = req.url;
   if (url === '/about') {
     res.write('<h1> About Us - Make-Server <h1>'); //write a response
     res.end(); //end the response
