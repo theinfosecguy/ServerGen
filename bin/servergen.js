@@ -27,7 +27,7 @@ const config = getConfig(__dirname, process.cwd());
 
 program
   .version(pkg.version)
-  .option('-f, --framework <type>', 'Enter Name of Framework: Node | Express')
+  .option('-f, --framework <type>', 'Enter Name of Framework: Node | Express | Fastify')
   .requiredOption('-n, --name <type>', 'Enter Name of App')
   .option('-v --view <type>', 'Name of View Engine: Pug | Jade | EJS | HBS')
   .option('--db', 'Install Mongoose & the Folder Directory for it')
