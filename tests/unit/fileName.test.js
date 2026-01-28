@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { cleanAppName } from '../lib/fileName.js';
+import { cleanAppName } from '../../lib/fileName.js';
 
 describe('cleanAppName', () => {
   it('converts to lowercase', () => {

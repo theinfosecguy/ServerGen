@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateOptions } from '../lib/validator.js';
+import { validateOptions } from '../../lib/validator.js';
 
 const validationRules = {
   frameworks: ['node', 'express'],

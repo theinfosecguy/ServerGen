@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getConfig } from '../lib/config.js';
+import { getConfig } from '../../lib/config.js';
 import path from 'path';
 
 describe('getConfig', () => {

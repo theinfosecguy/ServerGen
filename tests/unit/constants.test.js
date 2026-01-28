@@ -4,7 +4,7 @@ import {
   VIEW_ENGINES,
   VALID_VIEWS,
   DEPENDENCY_VERSIONS,
-} from '../lib/constants.js';
+} from '../../lib/constants.js';
 
 describe('constants', () => {
   describe('LOG_LEVELS', () => {

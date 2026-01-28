@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import * as buildHelper from '../lib/build_helper.js';
+import * as buildHelper from '../../lib/build_helper.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const testDir = path.join(__dirname, '.test-output');
