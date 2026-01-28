@@ -11,6 +11,7 @@ import * as fileCreator from './lib/file_generator.js';
 import * as displayer from './lib/log_display.js';
 import * as fileName from './lib/fileName.js';
 import { handleError, withErrorHandling } from './lib/error_handler.js';
+import * as logger from './lib/logger.js';
 
 export {
   AppGenerator,
@@ -23,4 +24,5 @@ export {
   fileName,
   handleError,
   withErrorHandling,
+  logger,
 };
