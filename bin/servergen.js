@@ -32,6 +32,7 @@ program
   .option('-v --view <type>', 'Name of View Engine: Pug | Jade | EJS | HBS')
   .option('--db', 'Install Mongoose & the Folder Directory for it')
   .option('-p, --port <number>', 'Set default port for the app', '3000')
+  .option('-t, --typescript', 'Generate TypeScript project')
   .option('--debug', 'Enable debug logging')
   .parse(process.argv);
 
@@ -48,8 +49,9 @@ handleValidationErrors(validationResult);
 
 const appName = fileName.cleanAppName(options.name);
 const port = parseInt(options.port, 10) || 3000;
+const typescript = options.typescript || false;
 
-logger.debug('Parsed configuration', { appName, port, framework: options.framework });
+logger.debug('Parsed configuration', { appName, port, framework: options.framework, typescript });
 
 /**
  * Main function to run the application generator.
@@ -62,6 +64,7 @@ const main = async () => {
       view: options.view,
       db: options.db,
       port,
+      typescript,
       config,
     },
     {
