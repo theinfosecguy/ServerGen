@@ -5,15 +5,22 @@
  * @module bin/servergen
  */
 
-const program = require('commander');
+import { fileURLToPath } from 'url';
+import path from 'path';
+import { createRequire } from 'module';
+import { program } from 'commander';
+import { getConfig } from '../lib/config.js';
+import { validateOptions, handleValidationErrors } from '../lib/validator.js';
+import AppGenerator from '../lib/app_generator.js';
+import * as fsHelper from '../lib/build_helper.js';
+import * as fileCreator from '../lib/file_generator.js';
+import * as displayer from '../lib/log_display.js';
+import * as fileName from '../lib/fileName.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
-const { getConfig } = require('../lib/config');
-const { validateOptions, handleValidationErrors } = require('../lib/validator');
-const AppGenerator = require('../lib/app_generator');
-const fsHelper = require('../lib/build_helper');
-const fileCreator = require('../lib/file_generator');
-const displayer = require('../lib/log_display');
-const fileName = require('../lib/fileName');
 
 const config = getConfig(__dirname, process.cwd());
 
