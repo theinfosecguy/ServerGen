@@ -3,16 +3,16 @@
  * @module servergen
  */
 
-const AppGenerator = require('./lib/app_generator');
-const { getConfig } = require('./lib/config');
-const { validateOptions, handleValidationErrors } = require('./lib/validator');
-const fsHelper = require('./lib/build_helper');
-const fileCreator = require('./lib/file_generator');
-const displayer = require('./lib/log_display');
-const fileName = require('./lib/fileName');
-const { handleError, withErrorHandling } = require('./lib/error_handler');
+import AppGenerator from './lib/app_generator.js';
+import { getConfig } from './lib/config.js';
+import { validateOptions, handleValidationErrors } from './lib/validator.js';
+import * as fsHelper from './lib/build_helper.js';
+import * as fileCreator from './lib/file_generator.js';
+import * as displayer from './lib/log_display.js';
+import * as fileName from './lib/fileName.js';
+import { handleError, withErrorHandling } from './lib/error_handler.js';
 
-module.exports = {
+export {
   AppGenerator,
   getConfig,
   validateOptions,
