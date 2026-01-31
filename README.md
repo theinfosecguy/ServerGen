@@ -3,7 +3,15 @@ ServerGen - Setup Server & MVC within seconds<br>
 <a href> <img src="https://user-images.githubusercontent.com/33570148/110940836-89153e00-835d-11eb-9fa7-2cc1e46834ff.png" height=350/></a>
 </h1>
 
-# Get your Node/Express Server Ready within seconds.
+# Get your Node/Express Server Ready within seconds
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Features](#features)
+- [Usage](#usage)
+- [Future Scope](#future-scope)
+- [License](#license)
 
 ## Installation
 
@@ -13,32 +21,24 @@ This is a [Node.js](https://nodejs.org/en/) module available through the
 Before installing, [download and install Node.js](https://nodejs.org/en/download/).
 
 ```bash
-$ npm install servergen
+npm install servergen
 ```
 
-NPM JS Package Link : [ServerGen](https://www.npmjs.com/package/servergen)
+**NPM Package**: [ServerGen](https://www.npmjs.com/package/servergen)
 
-## Features 🎉
+## Features
 
-1. MVC Directory Structure
-2. Multiple View Engine ( Pug, EJS, HBS )
-3. Gitignore & Docker Support Added
-4. Express/Node Server Boilerplate
-5. Mongoose Boilerplate for MongoDB
+- MVC Directory Structure
+- Multiple View Engine Support (Pug, EJS, HBS)
+- Gitignore and Docker Support
+- Express/Node Server Boilerplate
+- Mongoose Boilerplate for MongoDB
 
-What else you need? 🤫
-
-## Future Scope
-
-1. Add Swagger Documentation
-2. Add Passport Authentication
-3. Sequalize ORM for MySQL & PostgreSQL
-
-## Usage ✏
+## Usage
 
 Usage: `servergen [options]`
 
-Options:
+### Options
 
 ```
   -V, --version           output the version number
@@ -48,6 +48,12 @@ Options:
   --db                    Install Mongoose & the Folder Directory for it
   -h, --help              display help for command
 ```
+
+## Future Scope
+
+- Add Swagger Documentation
+- Add Passport Authentication
+- Sequelize ORM for MySQL and PostgreSQL
 
 ## License
 
