@@ -10,11 +10,8 @@ import path from 'path';
 import { createRequire } from 'module';
 import { program } from 'commander';
 import { getConfig } from '../lib/config.js';
-import { validateOptions, handleValidationErrors } from '../lib/validator.js';
-import AppGenerator from '../lib/app_generator.js';
-import * as fsHelper from '../lib/build_helper.js';
-import * as fileCreator from '../lib/file_generator.js';
-import * as displayer from '../lib/log_display.js';
+import { validateOptions } from '../lib/validator.js';
+import { createGenerator } from '../index.js';
 import * as fileName from '../lib/fileName.js';
 import * as logger from '../lib/logger.js';
 
@@ -45,7 +42,10 @@ if (options.debug) {
 logger.debug('CLI options received', options);
 
 const validationResult = validateOptions(options, config.validation);
-handleValidationErrors(validationResult);
+if (!validationResult.isValid) {
+  validationResult.errors.forEach((error) => logger.error(error));
+  process.exit(1);
+}
 
 const appName = fileName.cleanAppName(options.name);
 
@@ -65,28 +65,20 @@ logger.debug('Parsed configuration', { appName, port, framework: options.framewo
  * Main function to run the application generator.
  */
 const main = async () => {
-  const generator = new AppGenerator(
-    {
-      appName,
-      framework: options.framework,
-      view: options.view,
-      db: options.db,
-      port,
-      skipInstall,
-      config,
-    },
-    {
-      fsHelper,
-      fileCreator,
-      displayer,
-      logger,
-    }
-  );
+  const generator = createGenerator({
+    appName,
+    framework: options.framework,
+    view: options.view,
+    db: options.db,
+    port,
+    skipInstall,
+    config,
+  });
 
   try {
     await generator.generate();
   } catch (err) {
-    logger.error('Generation failed', err);
+    logger.error(err.message, err);
     process.exit(1);
   }
 };
