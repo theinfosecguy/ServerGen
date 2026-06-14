@@ -44,8 +44,11 @@ Usage: `servergen [options]`
   -V, --version           output the version number
   -f, --framework <type>  Enter Name of Framework: Node | Express
   -n, --name <type>       Enter Name of App
-  -v --view <type>        Name of View Engine: Pug | Jade | EJS | HBS
+  -v, --view <type>       Name of View Engine: Pug | EJS | HBS
+  -p, --port <number>     Set the port for the generated app (default: 3000)
   --db                    Install Mongoose & the Folder Directory for it
+  --skip-install          Skip the npm install step
+  --debug                 Enable debug logging
   -h, --help              display help for command
 ```
 

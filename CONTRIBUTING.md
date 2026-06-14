@@ -1,4 +1,4 @@
-# ServerX Contribution Guide
+# ServerGen Contribution Guide
 
 The goal of this document is to create a contribution process that:
 
