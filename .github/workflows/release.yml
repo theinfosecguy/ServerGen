@@ -1,0 +1,30 @@
+name: Release
+
+# Release gate: run the heavy package smoke test BEFORE any release. It packs,
+# installs the tarball, scaffolds Node and Express apps, boots their servers and
+# verifies a live HTTP response. This is intentionally kept out of the per-PR
+# ci.yml job. No registry publish credentials are configured here; the workflow
+# only proves the published package works end to end.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run package smoke test
+        run: npm run test:package
