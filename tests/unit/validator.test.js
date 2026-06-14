@@ -55,6 +55,47 @@ describe('validateOptions', () => {
     });
   });
 
+  describe('port validation', () => {
+    it('accepts a valid port', () => {
+      const result = validateOptions({ port: '8080' }, validationRules);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('accepts the default port', () => {
+      const result = validateOptions({ port: '3000' }, validationRules);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('rejects a port below 1', () => {
+      const result = validateOptions({ port: '0' }, validationRules);
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Invalid port');
+    });
+
+    it('rejects a negative port', () => {
+      const result = validateOptions({ port: '-5' }, validationRules);
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Invalid port');
+    });
+
+    it('rejects a port above 65535', () => {
+      const result = validateOptions({ port: '99999' }, validationRules);
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Invalid port');
+    });
+
+    it('rejects a non-numeric port', () => {
+      const result = validateOptions({ port: 'abc' }, validationRules);
+      expect(result.isValid).toBe(false);
+      expect(result.errors[0]).toContain('Invalid port');
+    });
+
+    it('passes when no port specified', () => {
+      const result = validateOptions({}, validationRules);
+      expect(result.isValid).toBe(true);
+    });
+  });
+
   describe('combined validation', () => {
     it('validates both framework and view', () => {
       const result = validateOptions(

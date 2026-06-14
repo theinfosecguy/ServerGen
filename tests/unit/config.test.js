@@ -53,7 +53,6 @@ describe('getConfig', () => {
       const config = getConfig(baseDir, cwd);
       expect(config.validation.views).toContain('ejs');
       expect(config.validation.views).toContain('pug');
-      expect(config.validation.views).toContain('jade');
       expect(config.validation.views).toContain('hbs');
     });
   });

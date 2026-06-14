@@ -29,7 +29,7 @@ program
   .version(pkg.version)
   .option('-f, --framework <type>', 'Enter Name of Framework: Node | Express')
   .requiredOption('-n, --name <type>', 'Enter Name of App')
-  .option('-v --view <type>', 'Name of View Engine: Pug | Jade | EJS | HBS')
+  .option('-v, --view <type>', 'Name of View Engine: Pug | EJS | HBS')
   .option('--db', 'Install Mongoose & the Folder Directory for it')
   .option('-p, --port <number>', 'Set default port for the app', '3000')
   .option('--skip-install', 'Skip npm install step')
@@ -48,6 +48,14 @@ const validationResult = validateOptions(options, config.validation);
 handleValidationErrors(validationResult);
 
 const appName = fileName.cleanAppName(options.name);
+
+if (!appName) {
+  logger.error(
+    'App name must contain at least one alphanumeric character. Please provide a valid name.'
+  );
+  process.exit(1);
+}
+
 const port = parseInt(options.port, 10) || 3000;
 const skipInstall = options.skipInstall || false;
 

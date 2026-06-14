@@ -34,12 +34,12 @@ describe('constants', () => {
       expect(VIEW_ENGINES.pug).toBeDefined();
     });
 
-    it('includes jade', () => {
-      expect(VIEW_ENGINES.jade).toBeDefined();
-    });
-
     it('includes hbs', () => {
       expect(VIEW_ENGINES.hbs).toBeDefined();
+    });
+
+    it('does not include deprecated jade', () => {
+      expect(VIEW_ENGINES.jade).toBeUndefined();
     });
   });
 
@@ -47,7 +47,6 @@ describe('constants', () => {
     it('is array of view engine names', () => {
       expect(VALID_VIEWS).toContain('ejs');
       expect(VALID_VIEWS).toContain('pug');
-      expect(VALID_VIEWS).toContain('jade');
       expect(VALID_VIEWS).toContain('hbs');
     });
 
