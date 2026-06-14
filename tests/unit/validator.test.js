@@ -118,6 +118,23 @@ describe('validateOptions', () => {
       const result = validateOptions({ framework: 'node' }, validationRules);
       expect(result.isValid).toBe(true);
     });
+
+    it('rejects --db with the node framework', () => {
+      const result = validateOptions(
+        { framework: 'node', db: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('express framework'))).toBe(true);
+    });
+
+    it('allows --db with the express framework', () => {
+      const result = validateOptions(
+        { framework: 'express', db: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
   });
 
   describe('combined validation', () => {

@@ -27,12 +27,35 @@ describe('CLI Integration', () => {
     });
   };
 
+  const expectCLIError = (args, messageSubstring) => {
+    let caught;
+    try {
+      runCLI(args);
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught, `expected the CLI to fail for: ${args}`).toBeDefined();
+    const output = `${caught.stdout || ''}${caught.stderr || ''}`;
+    if (messageSubstring) {
+      expect(output).toContain(messageSubstring);
+    }
+    return caught;
+  };
+
   describe('help command', () => {
     it('displays help information', () => {
       const output = runCLI('--help');
       expect(output).toContain('Usage:');
       expect(output).toContain('-n, --name');
       expect(output).toContain('-f, --framework');
+    });
+
+    it('shows usage examples', () => {
+      const output = runCLI('--help');
+      expect(output).toContain('Examples:');
+      expect(output).toContain('servergen my-api');
+      expect(output).toContain('-f node');
+      expect(output).toContain('--db');
     });
 
     it('displays version', () => {
@@ -182,6 +205,118 @@ describe('CLI Integration', () => {
     it('does not create a views directory for node apps', () => {
       runCLI('-n nodenoview -f node --skip-install');
       expect(fs.existsSync(path.join(testOutput, 'nodenoview', 'views'))).toBe(false);
+    });
+  });
+
+  describe('app name resolution', () => {
+    it('accepts a positional app name', () => {
+      runCLI('posapp --skip-install');
+      expect(fs.existsSync(path.join(testOutput, 'posapp', 'index.js'))).toBe(true);
+    });
+
+    it('accepts the legacy --name flag', () => {
+      runCLI('--name legacyapp --skip-install');
+      expect(fs.existsSync(path.join(testOutput, 'legacyapp', 'index.js'))).toBe(true);
+    });
+
+    it('sanitizes the positional name', () => {
+      runCLI('My-Api --skip-install');
+      expect(fs.existsSync(path.join(testOutput, 'myapi', 'index.js'))).toBe(true);
+    });
+
+    it('accepts the same name supplied both ways', () => {
+      runCLI('sameapp --name sameapp --skip-install');
+      expect(fs.existsSync(path.join(testOutput, 'sameapp', 'index.js'))).toBe(true);
+    });
+
+    it('rejects conflicting positional and --name values', () => {
+      expectCLIError('appone --name apptwo --skip-install', 'Conflicting app names');
+      expect(fs.existsSync(path.join(testOutput, 'appone'))).toBe(false);
+      expect(fs.existsSync(path.join(testOutput, 'apptwo'))).toBe(false);
+    });
+
+    it('errors when no name is provided', () => {
+      expectCLIError('--skip-install', 'Missing app name');
+    });
+
+    it('errors when the name has no alphanumeric characters', () => {
+      expectCLIError('@@@ --skip-install', 'at least one alphanumeric');
+    });
+  });
+
+  describe('defaults', () => {
+    it('defaults the framework to express and the port to 3000', () => {
+      runCLI('defaultapp --skip-install');
+
+      const pkg = JSON.parse(
+        fs.readFileSync(
+          path.join(testOutput, 'defaultapp', 'package.json'),
+          'utf-8'
+        )
+      );
+      expect(pkg.dependencies.express).toBeDefined();
+
+      const index = fs.readFileSync(
+        path.join(testOutput, 'defaultapp', 'index.js'),
+        'utf-8'
+      );
+      expect(index).toContain('process.env.PORT || 3000');
+    });
+  });
+
+  describe('supported flags', () => {
+    it('supports the pug view engine', () => {
+      runCLI('pugapp -v pug --skip-install');
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(testOutput, 'pugapp', 'package.json'), 'utf-8')
+      );
+      expect(pkg.dependencies.pug).toBeDefined();
+    });
+
+    it('supports the hbs view engine', () => {
+      runCLI('hbsapp -v hbs --skip-install');
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(testOutput, 'hbsapp', 'package.json'), 'utf-8')
+      );
+      expect(pkg.dependencies.hbs).toBeDefined();
+    });
+
+    it('--skip-install does not install dependencies', () => {
+      runCLI('skipapp --skip-install');
+      expect(
+        fs.existsSync(path.join(testOutput, 'skipapp', 'node_modules'))
+      ).toBe(false);
+    });
+
+    it('--debug emits debug logging', () => {
+      const output = runCLI('debugapp --debug --skip-install');
+      expect(output).toContain('[DEBUG');
+    });
+  });
+
+  describe('invalid options', () => {
+    it('rejects --db with the node framework', () => {
+      expectCLIError(
+        'nodedb -f node --db --skip-install',
+        'only supported with the express framework'
+      );
+      expect(fs.existsSync(path.join(testOutput, 'nodedb'))).toBe(false);
+    });
+
+    it('rejects an invalid framework', () => {
+      expectCLIError('badfw -f flask --skip-install', 'Invalid framework');
+    });
+
+    it('rejects an invalid view engine', () => {
+      expectCLIError('badview -v jade --skip-install', 'Invalid view engine');
+    });
+
+    it('rejects an out-of-range port', () => {
+      expectCLIError('badport -p 99999 --skip-install', 'Invalid port');
+    });
+
+    it('rejects a port of zero', () => {
+      expectCLIError('zeroport -p 0 --skip-install', 'Invalid port');
     });
   });
 });
