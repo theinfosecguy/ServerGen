@@ -127,11 +127,60 @@ describe('CLI Integration', () => {
   describe('custom port', () => {
     it('configures custom port in index.js', () => {
       runCLI('-n porttest -f express -p 8080 --skip-install');
-      
+
       const indexPath = path.join(testOutput, 'porttest', 'index.js');
       const content = fs.readFileSync(indexPath, 'utf-8');
-      
+
       expect(content).toContain('8080');
+    });
+  });
+
+  describe('database combined with port and views', () => {
+    it('keeps the custom port when --db is used', () => {
+      runCLI('-n dbport -f express --db -p 8080 --skip-install');
+
+      const content = fs.readFileSync(
+        path.join(testOutput, 'dbport', 'index.js'),
+        'utf-8'
+      );
+      expect(content).toContain('8080');
+      expect(content).toContain("require('./config/mongoose')");
+    });
+
+    it('keeps the view engine when --db is used', () => {
+      runCLI('-n dbview -f express --db -v ejs --skip-install');
+
+      const content = fs.readFileSync(
+        path.join(testOutput, 'dbview', 'index.js'),
+        'utf-8'
+      );
+      expect(content).toContain('view engine');
+      expect(content).toContain('ejs');
+      expect(content).toContain("require('./config/mongoose')");
+    });
+
+    it('keeps both port and view when --db, --port and --view are combined', () => {
+      runCLI('-n dball -f express --db -v ejs -p 8080 --skip-install');
+
+      const content = fs.readFileSync(
+        path.join(testOutput, 'dball', 'index.js'),
+        'utf-8'
+      );
+      expect(content).toContain('8080');
+      expect(content).toContain('ejs');
+      expect(content).toContain("require('./config/mongoose')");
+    });
+  });
+
+  describe('unsupported flag combinations', () => {
+    it('rejects --view with the node framework', () => {
+      expect(() => runCLI('-n nodeview -f node -v ejs --skip-install')).toThrow();
+      expect(fs.existsSync(path.join(testOutput, 'nodeview'))).toBe(false);
+    });
+
+    it('does not create a views directory for node apps', () => {
+      runCLI('-n nodenoview -f node --skip-install');
+      expect(fs.existsSync(path.join(testOutput, 'nodenoview', 'views'))).toBe(false);
     });
   });
 });
