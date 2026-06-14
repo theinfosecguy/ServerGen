@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theinfosecguy/servergen.git"
+    "url": "git+https://github.com/theinfosecguy/ServerGen.git"
   },
   "keywords": [
     "node",
@@ -35,9 +35,9 @@
   "preferGlobal": true,
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/theinfosecguy/servergen/issues"
+    "url": "https://github.com/theinfosecguy/ServerGen/issues"
   },
-  "homepage": "https://github.com/theinfosecguy/servergen#readme",
+  "homepage": "https://github.com/theinfosecguy/ServerGen#readme",
   "dependencies": {
     "chalk": "^5.4.1",
     "commander": "^14.0.2",
