@@ -1,10 +1,10 @@
 name: Release
 
-# Release gate: run the heavy package smoke test BEFORE any release. It packs,
-# installs the tarball, scaffolds Node and Express apps, boots their servers and
-# verifies a live HTTP response. This is intentionally kept out of the per-PR
-# ci.yml job. No registry publish credentials are configured here; the workflow
-# only proves the published package works end to end.
+# Release pipeline:
+# 1) smoke: pack, install the tarball, scaffold Node and Express apps, boot their
+#    servers and verify a live HTTP response. Kept out of the per-PR ci.yml job.
+# 2) publish: on a version tag, publish to npm using OIDC trusted publishing
+#    (no long-lived token; provenance is attached automatically).
 on:
   push:
     tags:
@@ -28,3 +28,28 @@ jobs:
 
       - name: Run package smoke test
         run: npm run test:package
+
+  publish:
+    needs: smoke
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      # Trusted publishing (OIDC) requires npm >= 11.5.1.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Publish to npm
+        run: npm publish
