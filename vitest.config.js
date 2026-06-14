@@ -6,12 +6,17 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
+      all: true,
+      include: ['lib/**/*.js', 'bin/**/*.js', 'index.js'],
       exclude: ['tests/**', 'node_modules/**'],
+      // Thresholds reflect the true baseline now that all source files are
+      // measured (previously only 2 files were counted, inflating coverage).
+      // Raise these as coverage of the core generator modules improves.
       thresholds: {
-        statements: 70,
-        branches: 60,
-        functions: 70,
-        lines: 70,
+        statements: 12,
+        branches: 15,
+        functions: 10,
+        lines: 12,
       },
     },
   },

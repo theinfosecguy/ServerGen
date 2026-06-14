@@ -4,6 +4,14 @@
   "description": "Tool to create Node/Express Environment setup within minutes.",
   "type": "module",
   "main": "./index.js",
+  "files": [
+    "bin",
+    "lib",
+    "index.js",
+    "templates",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
@@ -11,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/theinfosecguy/ServerGen.git"
+    "url": "git+https://github.com/theinfosecguy/servergen.git"
   },
   "keywords": [
     "node",
@@ -27,15 +35,16 @@
   "preferGlobal": true,
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/theinfosecguy/ServerGen/issues"
+    "url": "https://github.com/theinfosecguy/servergen/issues"
   },
-  "homepage": "https://github.com/theinfosecguy/ServerGen#readme",
+  "homepage": "https://github.com/theinfosecguy/servergen#readme",
   "dependencies": {
     "chalk": "^5.4.1",
     "commander": "^14.0.2",
     "fs-extra": "^11.3.3"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.18",
     "vitest": "^4.0.18"
   }
 }
