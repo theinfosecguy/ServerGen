@@ -96,6 +96,30 @@ describe('validateOptions', () => {
     });
   });
 
+  describe('framework and view compatibility', () => {
+    it('rejects a view engine with the node framework', () => {
+      const result = validateOptions(
+        { framework: 'node', view: 'ejs' },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('express framework'))).toBe(true);
+    });
+
+    it('allows a view engine with the express framework', () => {
+      const result = validateOptions(
+        { framework: 'express', view: 'ejs' },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('allows the node framework without a view engine', () => {
+      const result = validateOptions({ framework: 'node' }, validationRules);
+      expect(result.isValid).toBe(true);
+    });
+  });
+
   describe('combined validation', () => {
     it('validates both framework and view', () => {
       const result = validateOptions(
