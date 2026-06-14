@@ -25,10 +25,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 /**
  * GET http://127.0.0.1:<port>/ once and resolve { status, body }.
  */
-const httpGet = (port) =>
+const httpGet = (port, reqPath = '/') =>
   new Promise((resolve, reject) => {
     const req = http.get(
-      { host: '127.0.0.1', port, path: '/', timeout: 2000 },
+      { host: '127.0.0.1', port, path: reqPath, timeout: 2000 },
       (res) => {
         let body = '';
         res.setEncoding('utf-8');
@@ -45,12 +45,12 @@ const httpGet = (port) =>
 /**
  * Retry an HTTP GET with backoff until the server answers or we run out of time.
  */
-const waitForHttp = async (port, deadlineMs = 10000) => {
+const waitForHttp = async (port, reqPath = '/', deadlineMs = 10000) => {
   const start = Date.now();
   let lastErr;
   while (Date.now() - start < deadlineMs) {
     try {
-      return await httpGet(port);
+      return await httpGet(port, reqPath);
     } catch (err) {
       lastErr = err;
       await sleep(250);
@@ -158,8 +158,25 @@ describe('published package smoke test', () => {
       stdio: 'ignore',
     });
 
+  /**
+   * Send `signal` to a running server and resolve with its exit { code, signal }.
+   * Falls back to SIGKILL if it does not exit in time.
+   */
+  const stopProcess = (proc, signal, timeoutMs = 10000) =>
+    new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        proc.kill('SIGKILL');
+        reject(new Error(`process did not exit within ${timeoutMs}ms`));
+      }, timeoutMs);
+      proc.on('exit', (code, sig) => {
+        clearTimeout(timer);
+        resolve({ code, signal: sig });
+      });
+      proc.kill(signal);
+    });
+
   it(
-    'generates, builds, boots an Express app and serves HTTP 200',
+    'generates, builds, tests, boots an Express app, serves HTTP, and stops cleanly',
     async () => {
       const port = PORTS.express;
       const appDir = generate('smokeexpress', 'express', port);
@@ -170,31 +187,42 @@ describe('published package smoke test', () => {
       expect(fs.existsSync(path.join(appDir, 'routes', 'index.js'))).toBe(true);
       expect(fs.existsSync(path.join(appDir, 'controllers'))).toBe(true);
       expect(fs.existsSync(path.join(appDir, 'model'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'test', 'app.test.js'))).toBe(true);
 
       // A real .gitignore must ship (guards the gitignore fix this branch is on).
       const gitignorePath = path.join(appDir, '.gitignore');
       expect(fs.existsSync(gitignorePath)).toBe(true);
       expect(fs.readFileSync(gitignorePath, 'utf-8').length).toBeGreaterThan(0);
 
-      // Install the generated app's deps (express, cors, ...).
+      // Install the generated app's deps (express, cors, dotenv, supertest, ...).
       execFileSync(npmCmd, ['install', '--no-audit', '--no-fund'], {
         cwd: appDir,
         encoding: 'utf-8',
         timeout: 180000,
       });
 
-      // Boot the server and hit it over HTTP.
+      // The generated app's own integration test passes.
+      execFileSync(npmCmd, ['test'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        timeout: 120000,
+      });
+
+      // Boot the server and exercise it over HTTP.
       child = startServer(appDir, port);
-      try {
-        const res = await waitForHttp(port);
-        expect(res.status).toBe(200);
-        expect(res.body).toContain('Welcome to ServerGen!');
-      } finally {
-        if (child && !child.killed) {
-          child.kill('SIGKILL');
-        }
-        child = undefined;
-      }
+      const root = await waitForHttp(port, '/');
+      expect(root.status).toBe(200);
+      expect(root.body).toContain('Welcome to ServerGen!');
+
+      const health = await httpGet(port, '/health');
+      expect(health.status).toBe(200);
+      expect(health.body).toContain('"status":"ok"');
+
+      // The server shuts down cleanly on SIGTERM (exit 0, not killed by signal).
+      const { code, signal } = await stopProcess(child, 'SIGTERM');
+      child = undefined;
+      expect(signal).toBeNull();
+      expect(code).toBe(0);
     },
     240000
   );
