@@ -319,4 +319,94 @@ describe('CLI Integration', () => {
       expectCLIError('zeroport -p 0 --skip-install', 'Invalid port');
     });
   });
+
+  describe('production-ready Express app', () => {
+    const generateExpress = (name, extra = '') => {
+      runCLI(`${name} -f express ${extra} --skip-install`.replace(/\s+/g, ' ').trim());
+      return path.join(testOutput, name);
+    };
+
+    it('includes a /health endpoint', () => {
+      const index = fs.readFileSync(
+        path.join(generateExpress('healthapp'), 'index.js'),
+        'utf-8'
+      );
+      expect(index).toContain("app.get('/health'");
+      expect(index).toContain("status: 'ok'");
+    });
+
+    it('loads dotenv and exports the app for testing', () => {
+      const index = fs.readFileSync(
+        path.join(generateExpress('dotenvapp'), 'index.js'),
+        'utf-8'
+      );
+      expect(index).toContain("require('dotenv').config()");
+      expect(index).toContain('module.exports = app');
+      expect(index).toContain('require.main === module');
+    });
+
+    it('binds to 0.0.0.0 and handles SIGINT/SIGTERM', () => {
+      const index = fs.readFileSync(
+        path.join(generateExpress('shutapp'), 'index.js'),
+        'utf-8'
+      );
+      expect(index).toContain("'0.0.0.0'");
+      expect(index).toContain("process.on('SIGINT'");
+      expect(index).toContain("process.on('SIGTERM'");
+      expect(index).toContain('server.close');
+    });
+
+    it('registers centralized error-handling middleware', () => {
+      const index = fs.readFileSync(
+        path.join(generateExpress('errapp'), 'index.js'),
+        'utf-8'
+      );
+      expect(index).toContain('Internal Server Error');
+    });
+
+    it('adds dotenv, start/dev/test scripts and supertest', () => {
+      const pkg = JSON.parse(
+        fs.readFileSync(
+          path.join(generateExpress('scriptsapp'), 'package.json'),
+          'utf-8'
+        )
+      );
+      expect(pkg.dependencies.dotenv).toBeDefined();
+      expect(pkg.scripts.start).toBe('node index.js');
+      expect(pkg.scripts.dev).toBe('nodemon index.js');
+      expect(pkg.scripts.test).toBe('node --test');
+      expect(pkg.devDependencies.supertest).toBeDefined();
+    });
+
+    it('generates a basic integration test', () => {
+      const testFile = path.join(
+        generateExpress('testedapp'),
+        'test',
+        'app.test.js'
+      );
+      expect(fs.existsSync(testFile)).toBe(true);
+      expect(fs.readFileSync(testFile, 'utf-8')).toContain('/health');
+    });
+
+    it('uses MONGODB_URI in the mongoose config with --db', () => {
+      const mongoose = fs.readFileSync(
+        path.join(generateExpress('dbenvapp', '--db'), 'config', 'mongoose.js'),
+        'utf-8'
+      );
+      expect(mongoose).toContain('process.env.MONGODB_URI');
+    });
+
+    it('does not add the express test scaffolding to node apps', () => {
+      runCLI('nodeplain -f node --skip-install');
+      const pkg = JSON.parse(
+        fs.readFileSync(
+          path.join(testOutput, 'nodeplain', 'package.json'),
+          'utf-8'
+        )
+      );
+      expect(pkg.scripts.test).toBeUndefined();
+      expect(pkg.dependencies.dotenv).toBeUndefined();
+      expect(fs.existsSync(path.join(testOutput, 'nodeplain', 'test'))).toBe(false);
+    });
+  });
 });
