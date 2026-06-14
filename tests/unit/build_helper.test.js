@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -50,19 +50,13 @@ describe('build_helper', () => {
       expect(fs.existsSync(newFolder)).toBe(true);
     });
 
-    it('exits if folder already exists', () => {
+    it('throws if folder already exists', () => {
       const existingFolder = path.join(testDir, 'existing');
       fs.mkdirSync(existingFolder);
 
-      const mockExit = vi.spyOn(process, 'exit').mockImplementation(() => {
-        throw new Error('process.exit called');
-      });
-
       expect(() => {
         buildHelper.buildFolderforApp(existingFolder);
-      }).toThrow('process.exit called');
-
-      mockExit.mockRestore();
+      }).toThrow(/already exists/);
     });
   });
 });
