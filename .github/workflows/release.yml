@@ -41,11 +41,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No registry-url here: setup-node's registry-url writes a dummy auth token
+      # into .npmrc, which shadows OIDC and makes npm attempt (failing) token
+      # auth. Without it, npm finds no token and uses OIDC trusted publishing.
       - name: Use Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: 'https://registry.npmjs.org'
 
       # Trusted publishing (OIDC) requires npm >= 11.5.1.
       - name: Upgrade npm
