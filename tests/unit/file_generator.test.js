@@ -280,8 +280,10 @@ describe('file_generator', () => {
       addGitIgnore(testDir, templatesDir);
       const dest = path.join(testDir, '.gitignore');
       expect(fs.existsSync(dest)).toBe(true);
+      // Source template is stored as 'gitignore' (no dot) so npm does not strip
+      // it from published tarballs; it is written out as '.gitignore'.
       expect(fs.readFileSync(dest, 'utf-8')).toBe(
-        fs.readFileSync(path.join(templatesDir, '.gitignore'), 'utf-8')
+        fs.readFileSync(path.join(templatesDir, 'gitignore'), 'utf-8')
       );
     });
   });
