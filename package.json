@@ -31,7 +31,7 @@
   ],
   "author": "Keshav Malik",
   "bin": {
-    "servergen": "./bin/servergen.js"
+    "servergen": "bin/servergen.js"
   },
   "preferGlobal": true,
   "license": "MIT",
