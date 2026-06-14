@@ -61,8 +61,9 @@ describe('CLI Integration', () => {
       
       expect(pkg.name).toBe('expresstest');
       expect(pkg.dependencies.express).toBeDefined();
-      expect(pkg.dependencies.nodemon).toBeDefined();
+      expect(pkg.devDependencies.nodemon).toBeDefined();
       expect(pkg.dependencies.cors).toBeDefined();
+      expect(pkg.scripts.start).toBe('node index.js');
     });
 
     it('includes view engine when specified', () => {
@@ -102,7 +103,7 @@ describe('CLI Integration', () => {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
       
       expect(pkg.dependencies.express).toBeUndefined();
-      expect(pkg.dependencies.nodemon).toBeDefined();
+      expect(pkg.devDependencies.nodemon).toBeDefined();
     });
   });
 
