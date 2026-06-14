@@ -1,7 +1,7 @@
 {
   "name": "servergen",
-  "version": "1.3.0",
-  "description": "Tool to create Node/Express Environment setup within minutes.",
+  "version": "1.4.0",
+  "description": "CLI that scaffolds production-ready Node.js and Express apps with MVC structure, optional view engines, MongoDB, and Docker support.",
   "type": "module",
   "main": "./index.js",
   "files": [
