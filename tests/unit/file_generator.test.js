@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -17,7 +18,7 @@ import { VIEW_ENGINES, DEPENDENCY_VERSIONS } from '../../lib/constants.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templatesDir = path.join(__dirname, '..', '..', 'templates', 'express');
 const viewsDir = path.join(templatesDir, 'views');
-const testDir = path.join(__dirname, '.test-output-file-generator');
+let testDir;
 
 const readPkg = (folderDir) =>
   JSON.parse(fs.readFileSync(path.join(folderDir, 'package.json'), 'utf-8'));
@@ -29,7 +30,7 @@ describe('file_generator', () => {
   let logSpy;
 
   beforeEach(() => {
-    fs.ensureDirSync(testDir);
+    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'servergen-file-generator-'));
     logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
   });
 

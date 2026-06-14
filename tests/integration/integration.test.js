@@ -1,16 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..', '..');
-const testOutput = path.join(__dirname, '.integration-output');
+let testOutput;
 
 describe('CLI Integration', () => {
   beforeEach(() => {
-    fs.ensureDirSync(testOutput);
+    testOutput = fs.mkdtempSync(path.join(os.tmpdir(), 'servergen-integration-'));
   });
 
   afterEach(() => {

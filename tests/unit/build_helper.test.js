@@ -1,15 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import * as buildHelper from '../../lib/build_helper.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const testDir = path.join(__dirname, '.test-output');
+let testDir;
 
 describe('build_helper', () => {
   beforeEach(() => {
-    fs.ensureDirSync(testDir);
+    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'servergen-build-helper-'));
   });
 
   afterEach(() => {

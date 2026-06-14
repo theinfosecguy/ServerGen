@@ -1,11 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs-extra';
+import os from 'os';
 import path from 'path';
-import { fileURLToPath } from 'url';
 import AppGenerator from '../../lib/app_generator.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const testDir = path.join(__dirname, '.test-output-app-generator');
+let testDir;
 
 /**
  * Build a fresh set of mocked dependencies for each test.
@@ -56,7 +55,7 @@ describe('AppGenerator', () => {
   let config;
 
   beforeEach(() => {
-    fs.ensureDirSync(testDir);
+    testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'servergen-app-generator-'));
     deps = makeDeps();
     config = makeConfig();
   });
