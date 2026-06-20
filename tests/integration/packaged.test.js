@@ -86,8 +86,7 @@ describe('packaged CLI (from npm tarball)', () => {
   }, 120000);
 
   it('ships a real .gitignore in a generated node app', () => {
-    // Names are sanitized to [a-z0-9] by the CLI, so avoid hyphens here.
-    const appDir = generateFromTarball('packtestnode', 'node');
+    const appDir = generateFromTarball('pack-test-node', 'node');
 
     const gitignorePath = path.join(appDir, '.gitignore');
     expect(fs.existsSync(gitignorePath)).toBe(true);
