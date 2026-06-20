@@ -221,7 +221,21 @@ describe('CLI Integration', () => {
 
     it('sanitizes the positional name', () => {
       runCLI('My-Api --skip-install');
-      expect(fs.existsSync(path.join(testOutput, 'myapi', 'index.js'))).toBe(true);
+      const appDir = path.join(testOutput, 'my-api');
+      expect(fs.existsSync(path.join(appDir, 'index.js'))).toBe(true);
+
+      const pkg = JSON.parse(fs.readFileSync(path.join(appDir, 'package.json'), 'utf-8'));
+      expect(pkg.name).toBe('my-api');
+    });
+
+    it('keeps path-like names inside the current working directory', () => {
+      const outsideName = `escape-${path.basename(testOutput)}`;
+      const appName = outsideName.toLowerCase();
+      runCLI(`../${outsideName} --skip-install`);
+
+      expect(fs.existsSync(path.join(testOutput, appName, 'index.js'))).toBe(true);
+      expect(fs.existsSync(path.join(path.dirname(testOutput), outsideName))).toBe(false);
+      expect(fs.existsSync(path.join(path.dirname(testOutput), appName))).toBe(false);
     });
 
     it('accepts the same name supplied both ways', () => {
