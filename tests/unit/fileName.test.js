@@ -6,16 +6,24 @@ describe('cleanAppName', () => {
     expect(cleanAppName('MyApp')).toBe('myapp');
   });
 
-  it('removes spaces', () => {
-    expect(cleanAppName('my app')).toBe('myapp');
+  it('preserves single hyphen separators', () => {
+    expect(cleanAppName('demo-express')).toBe('demo-express');
   });
 
-  it('removes special characters', () => {
-    expect(cleanAppName('my-app_test!@#')).toBe('myapptest');
+  it('normalizes uppercase hyphenated names', () => {
+    expect(cleanAppName('My-Api')).toBe('my-api');
   });
 
-  it('removes hyphens and underscores', () => {
-    expect(cleanAppName('my-app_name')).toBe('myappname');
+  it('collapses spaces and unsafe punctuation into single hyphens', () => {
+    expect(cleanAppName('my app_test!@#demo')).toBe('my-app-test-demo');
+  });
+
+  it('collapses repeated hyphens', () => {
+    expect(cleanAppName('my---app')).toBe('my-app');
+  });
+
+  it('removes leading and trailing hyphens from unsafe input', () => {
+    expect(cleanAppName('../My-App/')).toBe('my-app');
   });
 
   it('handles numbers', () => {
