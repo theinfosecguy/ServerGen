@@ -27,11 +27,18 @@
     "url": "git+https://github.com/theinfosecguy/ServerGen.git"
   },
   "keywords": [
-    "node",
+    "api",
+    "backend",
+    "boilerplate",
+    "cli",
+    "docker",
     "express",
-    "js",
-    "ejs",
-    "server"
+    "generator",
+    "mongodb",
+    "mvc",
+    "nodejs",
+    "scaffold",
+    "scaffolding"
   ],
   "author": "Keshav Malik",
   "bin": {
