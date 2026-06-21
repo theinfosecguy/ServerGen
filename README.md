@@ -18,8 +18,8 @@ ServerGen - Setup Server & MVC within seconds<br>
 ## Quick Start
 
 ServerGen is a [Node.js](https://nodejs.org/en/) package available through the
-[npm registry](https://www.npmjs.com/package/servergen). Make sure Node.js and
-npm are installed first.
+[npm registry](https://www.npmjs.com/package/servergen). Make sure Node.js 20
+or higher and npm are installed first.
 
 The fastest first run is with `npx`:
 

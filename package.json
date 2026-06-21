@@ -1,9 +1,12 @@
 {
   "name": "servergen",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "CLI that scaffolds production-ready Node.js and Express apps with MVC structure, optional view engines, MongoDB, and Docker support.",
   "type": "module",
   "main": "./index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "files": [
     "bin",
     "lib",

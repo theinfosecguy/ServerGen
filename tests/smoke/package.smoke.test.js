@@ -254,7 +254,8 @@ describe('published package smoke test', () => {
       try {
         const res = await waitForHttp(port);
         expect(res.status).toBe(200);
-        expect(res.body).toContain('Hello World');
+        expect(res.body).toContain('Welcome to ServerGen!');
+        expect(res.body).toContain('"message"');
       } finally {
         if (child && !child.killed) {
           child.kill('SIGKILL');

@@ -1,6 +1,6 @@
 /**
  * Node.js HTTP server entry point.
- * @description Basic HTTP server with simple routing.
+ * @description Basic JSON HTTP server with simple routing.
  */
 
 const http = require('http');
@@ -12,20 +12,21 @@ const port = process.env.PORT || 3000;
  * Creates HTTP server with basic routing.
  */
 const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
+  const sendJson = function (statusCode, payload) {
+    res.statusCode = statusCode;
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    res.end(JSON.stringify(payload));
+  };
 
-  // Routing in NodeJS
   const url = req.url;
   if (url === '/about') {
-    res.write('<h1> About Us - Make-Server <h1>'); //write a response
-    res.end(); //end the response
+    sendJson(200, { message: 'About this ServerGen app' });
   } else if (url === '/contact') {
-    res.write('<h1> Contact us: Make-Server <h1>'); //write a response
-    res.end(); //end the response
+    sendJson(200, { message: 'Contact this ServerGen app' });
+  } else if (url === '/health') {
+    sendJson(200, { status: 'ok' });
   } else {
-    res.write('<h1>Hello World!<h1>'); //write a response
-    res.end(); //end the response
+    sendJson(200, { message: 'Welcome to ServerGen!' });
   }
 });
 
