@@ -140,6 +140,22 @@ describe('CLI Integration', () => {
       
       expect(pkg.dependencies.express).toBeUndefined();
       expect(pkg.devDependencies.nodemon).toBeDefined();
+      expect(pkg.engines.node).toBe('>=20');
+    });
+
+    it('generates a JSON-first Node server template', () => {
+      runCLI('-n nodejson -f node --skip-install');
+
+      const index = fs.readFileSync(
+        path.join(testOutput, 'nodejson', 'index.js'),
+        'utf-8'
+      );
+
+      expect(index).toContain("Content-Type', 'application/json; charset=utf-8'");
+      expect(index).toContain("message: 'Welcome to ServerGen!'");
+      expect(index).toContain("status: 'ok'");
+      expect(index).not.toContain('Make-Server');
+      expect(index).not.toContain('<h1>');
     });
   });
 
@@ -413,6 +429,7 @@ describe('CLI Integration', () => {
       expect(pkg.scripts.dev).toBe('nodemon index.js');
       expect(pkg.scripts.test).toBe('node --test');
       expect(pkg.devDependencies.supertest).toBeDefined();
+      expect(pkg.engines.node).toBe('>=20');
     });
 
     it('generates a basic integration test', () => {

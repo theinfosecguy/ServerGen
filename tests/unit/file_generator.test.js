@@ -66,6 +66,12 @@ describe('file_generator', () => {
       expect(pkg.scripts.dev).toBe('nodemon index.js');
     });
 
+    it('sets the supported Node.js engine floor', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false);
+      const pkg = readPkg(testDir);
+      expect(pkg.engines.node).toBe('>=20');
+    });
+
     it('always includes cors dependency', () => {
       createExpressApp(templatesDir, testDir, 'my-app', null, false);
       const pkg = readPkg(testDir);
@@ -153,6 +159,12 @@ describe('file_generator', () => {
       const pkg = readPkg(testDir);
       expect(pkg.scripts.start).toBe('node index.js');
       expect(pkg.scripts.dev).toBe('nodemon index.js');
+    });
+
+    it('sets the supported Node.js engine floor', () => {
+      createNodeApp(templatesDir, testDir, 'node-app', null, false);
+      const pkg = readPkg(testDir);
+      expect(pkg.engines.node).toBe('>=20');
     });
 
     it('adds the requested view dependency', () => {

@@ -6,7 +6,7 @@ A Node.js/Express application generated with [ServerGen](https://github.com/thei
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js 20 or higher
 - npm
 
 ### Installation
