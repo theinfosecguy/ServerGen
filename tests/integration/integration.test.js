@@ -170,8 +170,12 @@ describe('CLI Integration', () => {
 
       expect(index).toContain("Content-Type', 'application/json; charset=utf-8'");
       expect(index).toContain("process.env.HOST || '0.0.0.0'");
+      expect(index).toContain("requestPath === '/'");
       expect(index).toContain("message: 'Welcome to ServerGen!'");
+      expect(index).toContain("message: 'About this ServerGen app'");
+      expect(index).toContain("message: 'Contact this ServerGen app'");
       expect(index).toContain("status: 'ok'");
+      expect(index).toContain("sendJson(404, { error: 'Not Found' })");
       expect(index).not.toContain('Make-Server');
       expect(index).not.toContain('<h1>');
     });

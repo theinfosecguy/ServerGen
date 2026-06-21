@@ -234,7 +234,7 @@ describe('published package smoke test', () => {
   );
 
   it(
-    'generates, builds, boots a Node app and serves HTTP 200',
+    'generates, builds, boots a Node app and serves JSON routes with 404s',
     async () => {
       const port = PORTS.node;
       const appDir = generate('smokenode', 'node', port);
@@ -267,10 +267,31 @@ describe('published package smoke test', () => {
       // Boot the server and hit it over HTTP.
       child = startServer(appDir, port);
       try {
-        const res = await waitForHttp(port);
-        expect(res.status).toBe(200);
-        expect(res.body).toContain('Welcome to ServerGen!');
-        expect(res.body).toContain('"message"');
+        const root = await waitForHttp(port);
+        expect(root.status).toBe(200);
+        expect(JSON.parse(root.body)).toEqual({
+          message: 'Welcome to ServerGen!',
+        });
+
+        const about = await httpGet(port, '/about');
+        expect(about.status).toBe(200);
+        expect(JSON.parse(about.body)).toEqual({
+          message: 'About this ServerGen app',
+        });
+
+        const contact = await httpGet(port, '/contact');
+        expect(contact.status).toBe(200);
+        expect(JSON.parse(contact.body)).toEqual({
+          message: 'Contact this ServerGen app',
+        });
+
+        const health = await httpGet(port, '/health');
+        expect(health.status).toBe(200);
+        expect(JSON.parse(health.body)).toEqual({ status: 'ok' });
+
+        const missing = await httpGet(port, '/missing');
+        expect(missing.status).toBe(404);
+        expect(JSON.parse(missing.body)).toEqual({ error: 'Not Found' });
       } finally {
         if (child && !child.killed) {
           child.kill('SIGKILL');
