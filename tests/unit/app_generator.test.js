@@ -346,11 +346,13 @@ describe('AppGenerator', () => {
       );
       expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
         folderDir,
-        templatesDir
+        templatesDir,
+        { db: false, port: 3000 }
       );
       expect(deps.fileCreator.addEnvExample).toHaveBeenCalledWith(
         folderDir,
-        templatesDir
+        templatesDir,
+        { db: false, port: 3000 }
       );
     });
   });

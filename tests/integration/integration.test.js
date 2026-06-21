@@ -99,6 +99,18 @@ describe('CLI Integration', () => {
       expect(pkg.dependencies.ejs).toBeDefined();
     });
 
+    it('renders the selected view from the root route', () => {
+      runCLI('-n rendertest -f express -v ejs --skip-install');
+
+      const routes = fs.readFileSync(
+        path.join(testOutput, 'rendertest', 'routes', 'index.js'),
+        'utf-8'
+      );
+
+      expect(routes).toContain("res.status(200).render('ve_ejs'");
+      expect(routes).toContain("message: 'Welcome to ServerGen!'");
+    });
+
     it('includes mongoose when --db flag used', () => {
       runCLI('-n dbtest -f express --db --skip-install');
       
@@ -156,6 +168,17 @@ describe('CLI Integration', () => {
       const content = fs.readFileSync(indexPath, 'utf-8');
 
       expect(content).toContain('8080');
+    });
+
+    it('configures custom port in generated support docs', () => {
+      runCLI('-n portdocs -f express -p 8080 --skip-install');
+
+      const appDir = path.join(testOutput, 'portdocs');
+      const env = fs.readFileSync(path.join(appDir, '.env.example'), 'utf-8');
+      const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8');
+
+      expect(env).toContain('PORT=8080');
+      expect(readme).toContain('http://localhost:8080');
     });
   });
 
@@ -435,6 +458,20 @@ describe('CLI Integration', () => {
       expect(index.indexOf('connectDatabase();')).toBeGreaterThan(
         index.indexOf('if (require.main === module)')
       );
+    });
+
+    it('only includes MONGODB_URI in .env.example when --db is used', () => {
+      const plainEnv = fs.readFileSync(
+        path.join(generateExpress('plainenvapp'), '.env.example'),
+        'utf-8'
+      );
+      const dbEnv = fs.readFileSync(
+        path.join(generateExpress('dbexampleapp', '--db'), '.env.example'),
+        'utf-8'
+      );
+
+      expect(plainEnv).not.toContain('MONGODB_URI');
+      expect(dbEnv).toContain('MONGODB_URI');
     });
 
     it('does not add the express test scaffolding to node apps', () => {
