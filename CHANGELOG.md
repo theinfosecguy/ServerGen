@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.2 - 2026-06-22
+
+- Improve npm package discovery metadata and README positioning.
+- Polish generated Express apps with quiet dotenv output and status-before-JSON route responses.
+- Use generated app names in README titles and remove unused `cors` from plain Node apps.
+- Return JSON 404 responses for unknown routes in generated plain Node apps.
+
 ## 2.2.1 - 2026-06-21
 
 - Sync generated Dockerfile `EXPOSE` ports with custom `--port` values.
