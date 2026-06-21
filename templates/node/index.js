@@ -18,15 +18,17 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify(payload));
   };
 
-  const url = req.url;
-  if (url === '/about') {
+  const requestPath = (req.url || '/').split('?')[0];
+  if (requestPath === '/') {
+    sendJson(200, { message: 'Welcome to ServerGen!' });
+  } else if (requestPath === '/about') {
     sendJson(200, { message: 'About this ServerGen app' });
-  } else if (url === '/contact') {
+  } else if (requestPath === '/contact') {
     sendJson(200, { message: 'Contact this ServerGen app' });
-  } else if (url === '/health') {
+  } else if (requestPath === '/health') {
     sendJson(200, { status: 'ok' });
   } else {
-    sendJson(200, { message: 'Welcome to ServerGen!' });
+    sendJson(404, { error: 'Not Found' });
   }
 });
 
