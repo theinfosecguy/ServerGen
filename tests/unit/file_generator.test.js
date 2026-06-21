@@ -73,7 +73,7 @@ describe('file_generator', () => {
       expect(pkg.engines.node).toBe('>=20');
     });
 
-    it('always includes cors dependency', () => {
+    it('includes cors dependency', () => {
       createExpressApp(templatesDir, testDir, 'my-app', null, false);
       const pkg = readPkg(testDir);
       expect(pkg.dependencies.cors).toBe(DEPENDENCY_VERSIONS.cors);
@@ -121,12 +121,41 @@ describe('file_generator', () => {
       expect(readIndex(testDir)).not.toContain("require('./config/mongoose')");
     });
 
+    it('uses quiet dotenv configuration in the generated index.js', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false);
+      expect(readIndex(testDir)).toContain(
+        "require('dotenv').config({ quiet: true })"
+      );
+    });
+
+    it('uses quiet dotenv configuration in the generated config index.js', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, true);
+      expect(readIndex(testDir)).toContain(
+        "require('dotenv').config({ quiet: true })"
+      );
+    });
+
     it('generates the MVC folder structure', () => {
       createExpressApp(templatesDir, testDir, 'my-app', null, false);
       expect(fs.existsSync(path.join(testDir, 'controllers'))).toBe(true);
       expect(fs.existsSync(path.join(testDir, 'model'))).toBe(true);
       expect(fs.existsSync(path.join(testDir, 'routes'))).toBe(true);
       expect(fs.existsSync(path.join(testDir, 'routes', 'index.js'))).toBe(true);
+    });
+
+    it('writes JSON routes with status before body serialization', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false);
+      const routes = fs.readFileSync(
+        path.join(testDir, 'routes', 'index.js'),
+        'utf-8'
+      );
+
+      expect(routes).toMatch(
+        /router\.get\('\/', function \(req, res\) \{\n  res\n    \.status\(200\)\n    \.json\({/
+      );
+      expect(routes).toMatch(
+        /router\.post\('\/', function \(req, res\) \{\n  res\n    \.status\(200\)\n    \.json\({/
+      );
     });
 
     it('logs the express generation message', () => {
@@ -142,10 +171,10 @@ describe('file_generator', () => {
       expect(pkg.dependencies.express).toBeUndefined();
     });
 
-    it('still includes cors dependency', () => {
+    it('does not include unused cors dependency', () => {
       createNodeApp(templatesDir, testDir, 'node-app', null, false);
       const pkg = readPkg(testDir);
-      expect(pkg.dependencies.cors).toBe(DEPENDENCY_VERSIONS.cors);
+      expect(pkg.dependencies.cors).toBeUndefined();
     });
 
     it('places nodemon under devDependencies', () => {
@@ -295,6 +324,14 @@ describe('file_generator', () => {
       );
     });
 
+    it('uses quiet dotenv configuration in config/mongoose.js', () => {
+      handleConfig(testDir, templatesDir);
+      const configFile = path.join(testDir, 'config', 'mongoose.js');
+      expect(fs.readFileSync(configFile, 'utf-8')).toContain(
+        "require('dotenv').config({ quiet: true })"
+      );
+    });
+
     it('logs the configuring message', () => {
       handleConfig(testDir, templatesDir);
       expect(logSpy).toHaveBeenCalledWith('Configuring Mongoose..');
@@ -364,12 +401,28 @@ describe('file_generator', () => {
       expect(readme).not.toContain('http://localhost:3000');
     });
 
+    it('updates the generated Express README title when appName is configured', () => {
+      addReadme(testDir, templatesDir, { appName: 'my-api' });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+
+      expect(readme).toContain('# my-api');
+      expect(readme).not.toContain('# Project Name');
+    });
+
     it('updates Node README localhost URLs when configured', () => {
       addReadme(testDir, nodeTemplatesDir, { port: 8081 });
       const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
 
       expect(readme).toContain('http://127.0.0.1:8081');
       expect(readme).not.toContain('http://127.0.0.1:3000');
+    });
+
+    it('updates the generated Node README title when appName is configured', () => {
+      addReadme(testDir, nodeTemplatesDir, { appName: 'node-api' });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+
+      expect(readme).toContain('# node-api');
+      expect(readme).not.toContain('# Project Name');
     });
 
     it('does nothing when the template README.md is absent', () => {
