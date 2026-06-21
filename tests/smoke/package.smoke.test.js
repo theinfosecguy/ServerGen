@@ -188,6 +188,12 @@ describe('published package smoke test', () => {
       expect(fs.existsSync(path.join(appDir, 'controllers'))).toBe(true);
       expect(fs.existsSync(path.join(appDir, 'model'))).toBe(true);
       expect(fs.existsSync(path.join(appDir, 'test', 'app.test.js'))).toBe(true);
+      expect(fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8')).toContain(
+        `EXPOSE ${port}`
+      );
+      expect(fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8')).toContain(
+        `http://localhost:${port}`
+      );
 
       // A real .gitignore must ship (guards the gitignore fix this branch is on).
       const gitignorePath = path.join(appDir, '.gitignore');
@@ -236,6 +242,15 @@ describe('published package smoke test', () => {
       // Required files exist.
       expect(fs.existsSync(path.join(appDir, 'index.js'))).toBe(true);
       expect(fs.existsSync(path.join(appDir, 'package.json'))).toBe(true);
+      expect(fs.readFileSync(path.join(appDir, 'index.js'), 'utf-8')).toContain(
+        "process.env.HOST || '0.0.0.0'"
+      );
+      expect(fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8')).toContain(
+        `EXPOSE ${port}`
+      );
+      expect(fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8')).toContain(
+        `http://127.0.0.1:${port}`
+      );
 
       // A real .gitignore must ship.
       const gitignorePath = path.join(appDir, '.gitignore');

@@ -342,7 +342,8 @@ describe('AppGenerator', () => {
       );
       expect(deps.fileCreator.addDockerSupport).toHaveBeenCalledWith(
         folderDir,
-        templatesDir
+        templatesDir,
+        { db: false, port: 3000 }
       );
       expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
         folderDir,

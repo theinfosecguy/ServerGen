@@ -21,7 +21,7 @@ npm install
 npm start
 ```
 
-The server will start on http://127.0.0.1:3000
+The server listens on `0.0.0.0` and is reachable locally at http://127.0.0.1:3000
 
 ### Endpoints
 

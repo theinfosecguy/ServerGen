@@ -152,6 +152,7 @@ describe('CLI Integration', () => {
       );
 
       expect(index).toContain("Content-Type', 'application/json; charset=utf-8'");
+      expect(index).toContain("process.env.HOST || '0.0.0.0'");
       expect(index).toContain("message: 'Welcome to ServerGen!'");
       expect(index).toContain("status: 'ok'");
       expect(index).not.toContain('Make-Server');
@@ -192,9 +193,25 @@ describe('CLI Integration', () => {
       const appDir = path.join(testOutput, 'portdocs');
       const env = fs.readFileSync(path.join(appDir, '.env.example'), 'utf-8');
       const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8');
+      const dockerfile = fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8');
 
       expect(env).toContain('PORT=8080');
       expect(readme).toContain('http://localhost:8080');
+      expect(dockerfile).toContain('EXPOSE 8080');
+      expect(dockerfile).not.toContain('EXPOSE 3000');
+    });
+
+    it('configures custom port in Node generated support docs', () => {
+      runCLI('-n nodeportdocs -f node -p 8081 --skip-install');
+
+      const appDir = path.join(testOutput, 'nodeportdocs');
+      const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8');
+      const dockerfile = fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8');
+
+      expect(readme).toContain('http://127.0.0.1:8081');
+      expect(readme).not.toContain('http://127.0.0.1:3000');
+      expect(dockerfile).toContain('EXPOSE 8081');
+      expect(dockerfile).not.toContain('EXPOSE 3000');
     });
   });
 
