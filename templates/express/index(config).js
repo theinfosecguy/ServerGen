@@ -10,7 +10,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
-const mongoose = require('./config/mongoose');
+const { mongoose, connectDatabase } = require('./config/mongoose');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -38,6 +38,8 @@ app.use(function (err, req, res, next) {
 });
 
 if (require.main === module) {
+  connectDatabase();
+
   // Bind to 0.0.0.0 so the server is reachable from outside a container.
   const server = app.listen(port, '0.0.0.0', function () {
     console.log('Express server started on port ' + port);

@@ -410,6 +410,33 @@ describe('CLI Integration', () => {
       expect(mongoose).toContain('process.env.MONGODB_URI');
     });
 
+    it('exports a lazy MongoDB connector instead of connecting on import', () => {
+      const mongoose = fs.readFileSync(
+        path.join(generateExpress('lazydbapp', '--db'), 'config', 'mongoose.js'),
+        'utf-8'
+      );
+
+      expect(mongoose).toContain('const connectDatabase = function ()');
+      expect(mongoose).toContain('module.exports = { mongoose, connectDatabase }');
+      expect(mongoose.indexOf('.connect(uri)')).toBeGreaterThan(
+        mongoose.indexOf('const connectDatabase')
+      );
+    });
+
+    it('calls connectDatabase only from the generated server startup path', () => {
+      const index = fs.readFileSync(
+        path.join(generateExpress('dbstartapp', '--db'), 'index.js'),
+        'utf-8'
+      );
+
+      expect(index).toContain(
+        "const { mongoose, connectDatabase } = require('./config/mongoose')"
+      );
+      expect(index.indexOf('connectDatabase();')).toBeGreaterThan(
+        index.indexOf('if (require.main === module)')
+      );
+    });
+
     it('does not add the express test scaffolding to node apps', () => {
       runCLI('nodeplain -f node --skip-install');
       const pkg = JSON.parse(
