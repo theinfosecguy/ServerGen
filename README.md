@@ -1,9 +1,14 @@
 <h1 align=center>
-ServerGen - Setup Server & MVC within seconds<br>
+ServerGen - Node.js and Express app scaffolding CLI<br>
 <a href> <img src="https://user-images.githubusercontent.com/33570148/110940836-89153e00-835d-11eb-9fa7-2cc1e46834ff.png" height=350/></a>
 </h1>
 
-# Get your Node/Express Server Ready within seconds
+# Generate Node.js and Express APIs fast
+
+ServerGen is an npm CLI for scaffolding backend projects with a practical
+starting structure. It can generate Express or plain Node.js apps, add
+MVC-style folders, optional EJS/Pug/HBS views, optional Mongoose/MongoDB
+configuration, Docker files, and ready-to-run npm scripts.
 
 ## Table of Contents
 
@@ -12,7 +17,6 @@ ServerGen - Setup Server & MVC within seconds<br>
 - [CLI Usage](#cli-usage)
 - [Generated App Commands](#generated-app-commands)
 - [Features](#features)
-- [Future Scope](#future-scope)
 - [License](#license)
 
 ## Quick Start
@@ -131,12 +135,6 @@ curl http://localhost:3000/health
 - Express health check route at `/health`
 - Generated `npm start`, `npm run dev`, and Express `npm test` scripts
 - `.gitignore`, Dockerfile, and `.dockerignore` support
-
-## Future Scope
-
-- Add Swagger Documentation
-- Add Passport Authentication
-- Sequelize ORM for MySQL and PostgreSQL
 
 ## License
 
