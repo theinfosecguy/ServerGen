@@ -17,6 +17,7 @@ import { VIEW_ENGINES, DEPENDENCY_VERSIONS } from '../../lib/constants.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templatesDir = path.join(__dirname, '..', '..', 'templates', 'express');
+const nodeTemplatesDir = path.join(__dirname, '..', '..', 'templates', 'node');
 const viewsDir = path.join(templatesDir, 'views');
 let testDir;
 
@@ -333,6 +334,17 @@ describe('file_generator', () => {
         fs.readFileSync(path.join(templatesDir, 'Dockerfile'), 'utf-8')
       );
     });
+
+    it('updates the Dockerfile exposed port when configured', () => {
+      addDockerSupport(testDir, templatesDir, { port: 8080 });
+      const dockerfile = fs.readFileSync(
+        path.join(testDir, 'Dockerfile'),
+        'utf-8'
+      );
+
+      expect(dockerfile).toContain('EXPOSE 8080');
+      expect(dockerfile).not.toContain('EXPOSE 3000');
+    });
   });
 
   describe('addReadme', () => {
@@ -350,6 +362,14 @@ describe('file_generator', () => {
       const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
       expect(readme).toContain('http://localhost:8080');
       expect(readme).not.toContain('http://localhost:3000');
+    });
+
+    it('updates Node README localhost URLs when configured', () => {
+      addReadme(testDir, nodeTemplatesDir, { port: 8081 });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+
+      expect(readme).toContain('http://127.0.0.1:8081');
+      expect(readme).not.toContain('http://127.0.0.1:3000');
     });
 
     it('does nothing when the template README.md is absent', () => {
