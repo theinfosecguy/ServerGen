@@ -4,7 +4,7 @@
  * environment variable, falling back to a local database.
  */
 
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
 
 const mongoose = require('mongoose');
 

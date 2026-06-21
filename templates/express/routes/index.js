@@ -12,10 +12,10 @@ const router = express.Router();
  */
 router.get('/', function (req, res) {
   res
+    .status(200)
     .json({
       message: 'Welcome to ServerGen!',
-    })
-    .status(200);
+    });
 });
 
 /**
@@ -23,11 +23,11 @@ router.get('/', function (req, res) {
  */
 router.post('/', function (req, res) {
   res
+    .status(200)
     .json({
       message: 'Welcome to ServerGen!',
       data: req.body,
-    })
-    .status(200);
+    });
 });
 
 module.exports = router;

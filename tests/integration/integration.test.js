@@ -111,6 +111,22 @@ describe('CLI Integration', () => {
       expect(routes).toContain("message: 'Welcome to ServerGen!'");
     });
 
+    it('generates JSON routes with status before body serialization', () => {
+      runCLI('-n routeorder -f express --skip-install');
+
+      const routes = fs.readFileSync(
+        path.join(testOutput, 'routeorder', 'routes', 'index.js'),
+        'utf-8'
+      );
+
+      expect(routes).toMatch(
+        /router\.get\('\/', function \(req, res\) \{\n  res\n    \.status\(200\)\n    \.json\({/
+      );
+      expect(routes).toMatch(
+        /router\.post\('\/', function \(req, res\) \{\n  res\n    \.status\(200\)\n    \.json\({/
+      );
+    });
+
     it('includes mongoose when --db flag used', () => {
       runCLI('-n dbtest -f express --db --skip-install');
       
@@ -132,13 +148,14 @@ describe('CLI Integration', () => {
       expect(fs.existsSync(path.join(appDir, 'package.json'))).toBe(true);
     });
 
-    it('generates package.json without express dependency', () => {
+    it('generates package.json without express or cors dependencies', () => {
       runCLI('-n purenode -f node --skip-install');
       
       const pkgPath = path.join(testOutput, 'purenode', 'package.json');
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
       
       expect(pkg.dependencies.express).toBeUndefined();
+      expect(pkg.dependencies.cors).toBeUndefined();
       expect(pkg.devDependencies.nodemon).toBeDefined();
       expect(pkg.engines.node).toBe('>=20');
     });
@@ -197,6 +214,8 @@ describe('CLI Integration', () => {
 
       expect(env).toContain('PORT=8080');
       expect(readme).toContain('http://localhost:8080');
+      expect(readme).toContain('# portdocs');
+      expect(readme).not.toContain('# Project Name');
       expect(dockerfile).toContain('EXPOSE 8080');
       expect(dockerfile).not.toContain('EXPOSE 3000');
     });
@@ -209,7 +228,9 @@ describe('CLI Integration', () => {
       const dockerfile = fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8');
 
       expect(readme).toContain('http://127.0.0.1:8081');
+      expect(readme).toContain('# nodeportdocs');
       expect(readme).not.toContain('http://127.0.0.1:3000');
+      expect(readme).not.toContain('# Project Name');
       expect(dockerfile).toContain('EXPOSE 8081');
       expect(dockerfile).not.toContain('EXPOSE 3000');
     });
@@ -410,7 +431,7 @@ describe('CLI Integration', () => {
         path.join(generateExpress('dotenvapp'), 'index.js'),
         'utf-8'
       );
-      expect(index).toContain("require('dotenv').config()");
+      expect(index).toContain("require('dotenv').config({ quiet: true })");
       expect(index).toContain('module.exports = app');
       expect(index).toContain('require.main === module');
     });
@@ -465,6 +486,7 @@ describe('CLI Integration', () => {
         'utf-8'
       );
       expect(mongoose).toContain('process.env.MONGODB_URI');
+      expect(mongoose).toContain("require('dotenv').config({ quiet: true })");
     });
 
     it('exports a lazy MongoDB connector instead of connecting on import', () => {
