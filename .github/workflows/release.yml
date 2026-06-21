@@ -4,7 +4,8 @@ name: Release
 # 1) smoke: pack, install the tarball, scaffold Node and Express apps, boot their
 #    servers and verify a live HTTP response. Kept out of the per-PR ci.yml job.
 # 2) publish: on a version tag, publish to npm using OIDC trusted publishing
-#    (no long-lived token; provenance is attached automatically).
+#    (no long-lived token; provenance is attached automatically), then create the
+#    matching GitHub Release so npm and GitHub show the same latest version.
 on:
   push:
     tags:
@@ -35,7 +36,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
 
     permissions:
-      contents: read
+      contents: write
       id-token: write
 
     steps:
@@ -55,3 +56,13 @@ jobs:
       # the historical 2021 servergen@2.0.0 package on the npm registry.
       - name: Publish to npm
         run: npm publish --tag latest
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --latest
+          else
+            gh release create "$GITHUB_REF_NAME" --generate-notes --latest --verify-tag
+          fi
