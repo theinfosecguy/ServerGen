@@ -214,6 +214,25 @@ describe('file_generator', () => {
       expect(fs.existsSync(path.join(testDir, 'views', 've_ejs.ejs'))).toBe(true);
     });
 
+    it('updates GET / to render the selected view when routes exist', () => {
+      fs.writeFileSync(path.join(testDir, 'index.js'), '// Views\nconst x = 1;');
+      fs.ensureDirSync(path.join(testDir, 'routes'));
+      fs.copyFileSync(
+        path.join(templatesDir, 'routes', 'index.js'),
+        path.join(testDir, 'routes', 'index.js')
+      );
+
+      handleViews(testDir, viewsDir, 'ejs');
+
+      const routes = fs.readFileSync(
+        path.join(testDir, 'routes', 'index.js'),
+        'utf-8'
+      );
+      expect(routes).toContain("res.status(200).render('ve_ejs'");
+      expect(routes).toContain("message: 'Welcome to ServerGen!'");
+      expect(routes).not.toContain('GET / - Returns welcome message');
+    });
+
     it('injects the view-engine line into index.js for a valid view', () => {
       fs.writeFileSync(path.join(testDir, 'index.js'), '// Views\nconst x = 1;');
       handleViews(testDir, viewsDir, 'pug');
