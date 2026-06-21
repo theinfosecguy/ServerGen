@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.2.1 - 2026-06-21
+
+- Sync generated Dockerfile `EXPOSE` ports with custom `--port` values.
+- Update generated Node app custom-port README URLs and bind Node servers to `0.0.0.0` by default for container use.
+- Create GitHub Releases after npm publish so npm and GitHub show the same latest version.
+
 ## 2.2.0 - 2026-06-21
 
 - Declare Node.js `>=20` as the supported runtime for ServerGen and generated apps.
