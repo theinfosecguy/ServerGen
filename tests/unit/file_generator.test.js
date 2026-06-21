@@ -333,6 +333,13 @@ describe('file_generator', () => {
       );
     });
 
+    it('updates the generated README port when configured', () => {
+      addReadme(testDir, templatesDir, { port: 8080 });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+      expect(readme).toContain('http://localhost:8080');
+      expect(readme).not.toContain('http://localhost:3000');
+    });
+
     it('does nothing when the template README.md is absent', () => {
       // node templates dir has a README, so point at an empty temp templates dir
       const emptyTemplates = path.join(testDir, 'empty-templates');
@@ -350,6 +357,21 @@ describe('file_generator', () => {
       expect(fs.readFileSync(dest, 'utf-8')).toBe(
         fs.readFileSync(path.join(templatesDir, '.env.example'), 'utf-8')
       );
+    });
+
+    it('writes only server env values when MongoDB is not enabled', () => {
+      addEnvExample(testDir, templatesDir, { db: false, port: 8080 });
+      const env = fs.readFileSync(path.join(testDir, '.env.example'), 'utf-8');
+      expect(env).toContain('PORT=8080');
+      expect(env).toContain('NODE_ENV=development');
+      expect(env).not.toContain('MONGODB_URI');
+    });
+
+    it('keeps MongoDB env values when MongoDB is enabled', () => {
+      addEnvExample(testDir, templatesDir, { db: true, port: 8080 });
+      const env = fs.readFileSync(path.join(testDir, '.env.example'), 'utf-8');
+      expect(env).toContain('MONGODB_URI=mongodb://localhost/your_database_name');
+      expect(env).toContain('PORT=8080');
     });
 
     it('does nothing when the template .env.example is absent', () => {
