@@ -1,38 +1,47 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Report a ServerGen CLI or scaffold output problem
 title: ''
-labels: ''
+labels: bug
 assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**What happened?**
+A short description of the CLI problem or generated project issue.
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+**ServerGen version**
+Run `servergen --version` or share the installed package version.
+
+**Install method**
+Example: `npm install -g servergen`, `npx servergen`, local checkout, or another method.
+
+**Command run**
+Paste the exact command, including flags and project name.
+
+```sh
+servergen ...
+```
+
+**Node and npm versions**
+Paste the output of:
+
+```sh
+node --version
+npm --version
+```
+
+**OS and shell**
+Example: macOS 15 with zsh, Windows 11 with PowerShell, Ubuntu with bash.
+
+**Generated project type**
+Example: Express API, MVC app, selected view engine, MongoDB option, Docker option, or other choices made during prompts.
+
+**Actual output**
+Paste the terminal output, error stack, or generated file behavior you saw.
 
 **Expected behavior**
-A clear and concise description of what you expected to happen.
-
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
-
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
-
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+What did you expect ServerGen to do instead?
 
 **Additional context**
-Add any other context about the problem here.
+Anything else that may help reproduce the issue, such as whether the target folder already existed or if the command was run behind a proxy.
