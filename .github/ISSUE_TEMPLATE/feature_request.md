@@ -1,20 +1,29 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an improvement for the ServerGen CLI or scaffolded projects
 title: ''
-labels: ''
+labels: enhancement
 assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**Use case**
+What are you trying to build or automate with ServerGen?
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**Requested CLI or scaffold behavior**
+Describe the command, option, prompt, generated files, dependency, or project structure you would like to add or change.
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+**Example command or workflow**
+
+```sh
+servergen ...
+```
+
+**Generated project impact**
+Which scaffolded project types would this affect? Example: Express API, MVC app, view engine setup, MongoDB, Docker, tests, linting, or deployment files.
+
+**Alternatives considered**
+Are there existing ServerGen options, manual steps, or other tools that partially solve this?
 
 **Additional context**
-Add any other context or screenshots about the feature request here.
+Links, examples, or constraints that would help evaluate the request.
