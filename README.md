@@ -82,6 +82,9 @@ npx servergen@latest my-api --skip-install
 npx servergen@latest --name my-api
 ```
 
+For command-by-command walkthroughs, generated file lists, and verification
+steps, see the [scaffold examples](https://github.com/theinfosecguy/ServerGen/tree/main/docs/examples).
+
 ## Install Options
 
 Use `npx` when you want to create an app without adding ServerGen to another
