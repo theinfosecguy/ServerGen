@@ -1,31 +1,19 @@
-<h1 align=center>
-ServerGen - Node.js and Express app scaffolding CLI<br>
-<a href> <img src="https://user-images.githubusercontent.com/33570148/110940836-89153e00-835d-11eb-9fa7-2cc1e46834ff.png" height=350/></a>
-</h1>
+# ServerGen
 
-# Generate Node.js and Express APIs fast
+[![CI](https://github.com/theinfosecguy/ServerGen/actions/workflows/ci.yml/badge.svg)](https://github.com/theinfosecguy/ServerGen/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/servergen.svg)](https://www.npmjs.com/package/servergen)
+[![npm downloads](https://img.shields.io/npm/dm/servergen.svg)](https://www.npmjs.com/package/servergen)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Node >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
+[![GitHub release](https://img.shields.io/github/v/release/theinfosecguy/ServerGen?display_name=tag)](https://github.com/theinfosecguy/ServerGen/releases/latest)
 
-ServerGen is an npm CLI for scaffolding backend projects with a practical
-starting structure. It can generate Express or plain Node.js apps, add
-MVC-style folders, optional EJS/Pug/HBS views, optional Mongoose/MongoDB
-configuration, Docker files, and ready-to-run npm scripts.
+ServerGen is an npm CLI for scaffolding Node.js and Express API projects with
+practical defaults: MVC-style folders, health checks, Docker files, ready-to-run
+npm scripts, optional Express views, and optional Mongoose/MongoDB config.
 
-## Table of Contents
+## 30-Second Quick Start
 
-- [Quick Start](#quick-start)
-- [Install Options](#install-options)
-- [CLI Usage](#cli-usage)
-- [Generated App Commands](#generated-app-commands)
-- [Features](#features)
-- [License](#license)
-
-## Quick Start
-
-ServerGen is a [Node.js](https://nodejs.org/en/) package available through the
-[npm registry](https://www.npmjs.com/package/servergen). Make sure Node.js 20
-or higher and npm are installed first.
-
-The fastest first run is with `npx`:
+Requires Node.js 20 or higher.
 
 ```bash
 npx servergen@latest my-api
@@ -33,7 +21,7 @@ cd my-api
 npm start
 ```
 
-In another terminal, verify the default Express app:
+In another terminal:
 
 ```bash
 curl http://localhost:3000/health
@@ -43,6 +31,55 @@ Expected response:
 
 ```json
 {"status":"ok"}
+```
+
+ServerGen creates an Express app by default and runs `npm install` in the
+generated app unless `--skip-install` is used.
+
+## What Gets Generated
+
+| Choice | Output |
+| --- | --- |
+| Default Express app | `index.js`, `routes/index.js`, `controllers/`, `model/`, `views/`, `.env.example`, `Dockerfile`, `.dockerignore`, `.gitignore`, generated `README.md`, `package.json`, and `test/app.test.js`. |
+| `--framework node` | Plain Node.js HTTP server with `/`, `/about`, `/contact`, and `/health`, plus MVC folders, Docker files, `.gitignore`, generated `README.md`, and `package.json`. |
+| `--view ejs`, `pug`, or `hbs` | Adds the selected Express view template and renders it from `/`. |
+| `--db` | Adds Mongoose, `config/mongoose.js`, and `MONGODB_URI` in `.env.example` for Express apps. |
+
+Generated apps include `npm start` and `npm run dev`. Express apps also include
+`npm test`.
+
+## CLI Usage
+
+```bash
+servergen [options] [name]
+```
+
+`name` is the app directory to create. You can also pass it with `--name`.
+
+### Options
+
+```text
+  -V, --version           output the version number
+  -n, --name <name>       name of the app to create
+  -f, --framework <type>  framework: express | node (default: "express")
+  -v, --view <type>       view engine (express only): ejs | pug | hbs
+  --db                    add Mongoose and a MongoDB config (express only)
+  -p, --port <number>     port for the generated app (1-65535) (default: "3000")
+  --skip-install          skip the npm install step
+  --debug                 enable debug logging
+  -h, --help              display help for command
+```
+
+### Examples
+
+```bash
+npx servergen@latest my-api
+npx servergen@latest my-api --framework node
+npx servergen@latest my-api --view ejs
+npx servergen@latest my-api --db
+npx servergen@latest my-api --port 8080
+npx servergen@latest my-api --skip-install
+npx servergen@latest --name my-api
 ```
 
 ## Install Options
@@ -72,69 +109,16 @@ npm install -g servergen
 servergen my-api
 ```
 
-## CLI Usage
+## Release Integrity
 
-```bash
-servergen [options] [name]
-```
+Tagged releases are published from GitHub Actions with npm trusted publishing
+and provenance, using OIDC instead of a long-lived npm token. Before publishing,
+the release workflow packs the package, installs that tarball in a throwaway
+project, scaffolds Express and Node apps, starts them, and verifies live HTTP
+responses.
 
-`name` is the app directory to create. You can also pass it with `--name`.
-ServerGen creates an Express app by default and runs `npm install` in the
-generated app unless `--skip-install` is used.
-
-### Options
-
-```text
-  -V, --version           output the version number
-  -n, --name <name>       name of the app to create
-  -f, --framework <type>  framework: express | node (default: "express")
-  -v, --view <type>       view engine (express only): ejs | pug | hbs
-  --db                    add Mongoose and a MongoDB config (express only)
-  -p, --port <number>     port for the generated app (1-65535) (default: "3000")
-  --skip-install          skip the npm install step
-  --debug                 enable debug logging
-  -h, --help              display help for command
-```
-
-### Examples
-
-```bash
-npx servergen@latest my-api
-npx servergen@latest my-api --framework node
-npx servergen@latest my-api --view ejs
-npx servergen@latest my-api --db
-npx servergen@latest my-api --port 8080
-npx servergen@latest my-api --skip-install
-npx servergen@latest --name my-api
-```
-
-## Generated App Commands
-
-From inside the generated app:
-
-```bash
-npm start       # run node index.js
-npm run dev     # run nodemon index.js
-```
-
-Express apps also include:
-
-```bash
-npm test
-curl http://localhost:3000/
-curl http://localhost:3000/health
-```
-
-## Features
-
-- Express app generation by default
-- Plain Node.js HTTP server generation with `--framework node`
-- MVC-style `controllers`, `model`, and `routes` directories
-- Optional Express view engines: EJS, Pug, or HBS
-- Optional Mongoose/MongoDB config with `--db`
-- Express health check route at `/health`
-- Generated `npm start`, `npm run dev`, and Express `npm test` scripts
-- `.gitignore`, Dockerfile, and `.dockerignore` support
+The same workflow creates or updates the matching GitHub Release as `latest`
+after npm publish succeeds, so GitHub releases track the npm `latest` package.
 
 ## License
 
