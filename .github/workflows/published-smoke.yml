@@ -1,0 +1,129 @@
+name: Published Package Smoke
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 9 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+
+    steps:
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install and smoke test servergen@latest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tmp_dir="$(mktemp -d)"
+          install_dir="$tmp_dir/consumer"
+          express_port=5310
+          node_port=5311
+          pids=()
+
+          dump_logs() {
+            local log
+            for log in "$tmp_dir"/*.log; do
+              if [ -f "$log" ]; then
+                echo "::group::$(basename "$log")"
+                cat "$log"
+                echo "::endgroup::"
+              fi
+            done
+          }
+
+          cleanup() {
+            local status="$?"
+            local pid
+
+            if [ "$status" -ne 0 ]; then
+              dump_logs
+            fi
+
+            if [ "${#pids[@]}" -gt 0 ]; then
+              for pid in "${pids[@]}"; do
+                if kill -0 "$pid" 2>/dev/null; then
+                  kill "$pid" 2>/dev/null || true
+                  wait "$pid" 2>/dev/null || true
+                fi
+              done
+            fi
+
+            rm -rf "$tmp_dir"
+          }
+
+          curl_json() {
+            local url="$1"
+            local output="$2"
+
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --retry 20 \
+              --retry-delay 1 \
+              --retry-connrefused \
+              --output "$output" \
+              "$url"
+          }
+
+          trap cleanup EXIT
+
+          mkdir -p "$install_dir"
+          cd "$install_dir"
+
+          npm init -y >/dev/null
+          npm install servergen@latest --no-audit --no-fund
+
+          servergen_bin="./node_modules/.bin/servergen"
+          expected_version="$(npm view servergen@latest version)"
+          installed_version="$(node -p "require('./node_modules/servergen/package.json').version")"
+          cli_version="$("$servergen_bin" --version)"
+
+          test -x "$servergen_bin"
+          test "$installed_version" = "$expected_version"
+          test "$cli_version" = "$expected_version"
+
+          "$servergen_bin" smoke-express --framework express --port "$express_port" --skip-install
+          "$servergen_bin" smoke-node --framework node --port "$node_port" --skip-install
+
+          npm --prefix smoke-express install --no-audit --no-fund
+          npm --prefix smoke-node install --no-audit --no-fund
+
+          (cd smoke-express && PORT="$express_port" exec node index.js) >"$tmp_dir/express.log" 2>&1 &
+          pids+=("$!")
+
+          (cd smoke-node && PORT="$node_port" exec node index.js) >"$tmp_dir/node.log" 2>&1 &
+          pids+=("$!")
+
+          curl_json "http://127.0.0.1:$express_port/health" "$tmp_dir/express-health.json"
+          grep -q '"status":"ok"' "$tmp_dir/express-health.json"
+
+          curl_json "http://127.0.0.1:$node_port/health" "$tmp_dir/node-health.json"
+          grep -q '"status":"ok"' "$tmp_dir/node-health.json"
+
+          node_404_status="$(
+            curl \
+              --silent \
+              --show-error \
+              --output "$tmp_dir/node-404.json" \
+              --write-out '%{http_code}' \
+              "http://127.0.0.1:$node_port/missing"
+          )"
+
+          test "$node_404_status" = "404"
+          grep -q '"error":"Not Found"' "$tmp_dir/node-404.json"
