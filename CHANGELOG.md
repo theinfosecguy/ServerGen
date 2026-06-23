@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.2.3 - 2026-06-23
+
+- Improve README trust signals with status badges, a faster quick start, generated-output details, and release integrity notes.
+- Add CLI-focused issue templates, pull request guidance, contribution guidance, and security policy.
+- Add release checklist docs and weekly published-package smoke testing for `servergen@latest`.
+- Add copy-paste examples for Express, plain Node, view engines, MongoDB, and custom ports/Docker.
+
 ## 2.2.2 - 2026-06-22
 
 - Improve npm package discovery metadata and README positioning.
