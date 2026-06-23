@@ -21,6 +21,10 @@ Generated files and directories include:
 - `package.json` with `start`, `dev`, and `test` scripts
 - `.env.example`, `.gitignore`, `.dockerignore`, `Dockerfile`, and `README.md`
 
+Pass `--openapi` to also generate `docs/openapi.yaml`, a static OpenAPI 3.0
+spec for `/`, `POST /`, and `/health`. The spec uses the selected app name and
+custom `--port` value in its metadata and local server URL.
+
 Because the command runs installation by default, npm also creates `node_modules/` and `package-lock.json` inside `hello-express/`.
 
 The generated Express app depends on `express`, `cors`, and `dotenv`. It does not generate auth, ORM models, or production deployment configuration.

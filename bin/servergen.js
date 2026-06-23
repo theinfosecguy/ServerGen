@@ -31,6 +31,7 @@ program
   .option('-f, --framework <type>', 'framework: express | node', 'express')
   .option('-v, --view <type>', 'view engine (express only): ejs | pug | hbs')
   .option('--db', 'add Mongoose and a MongoDB config (express only)')
+  .option('--openapi', 'generate an OpenAPI spec file (express only)')
   .option('-p, --port <number>', 'port for the generated app (1-65535)', '3000')
   .option('--skip-install', 'skip the npm install step')
   .option('--debug', 'enable debug logging')
@@ -42,6 +43,7 @@ Examples:
   $ servergen my-api -f node          create a Node app
   $ servergen my-api -v ejs           Express app with the EJS view engine
   $ servergen my-api --db             Express app with Mongoose/MongoDB
+  $ servergen my-api --openapi        Express app with docs/openapi.yaml
   $ servergen my-api -p 8080          use a custom port
   $ servergen my-api --skip-install   scaffold without running npm install
   $ servergen --name my-api           name via flag (equivalent to positional)`
@@ -103,6 +105,7 @@ const main = async () => {
     framework: options.framework,
     view: options.view,
     db: options.db,
+    openapi: options.openapi,
     port,
     skipInstall,
     config,

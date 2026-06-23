@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add an Express-only `--openapi` option that generates `docs/openapi.yaml` and documents it in the generated README.
+
 ## 2.2.3 - 2026-06-23
 
 - Improve README trust signals with status badges, a faster quick start, generated-output details, and release integrity notes.

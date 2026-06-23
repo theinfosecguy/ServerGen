@@ -48,6 +48,7 @@ describe('CLI Integration', () => {
       expect(output).toContain('Usage:');
       expect(output).toContain('-n, --name');
       expect(output).toContain('-f, --framework');
+      expect(output).toContain('--openapi');
     });
 
     it('shows usage examples', () => {
@@ -135,6 +136,34 @@ describe('CLI Integration', () => {
       
       expect(pkg.dependencies.mongoose).toBeDefined();
       expect(fs.existsSync(path.join(testOutput, 'dbtest', 'config'))).toBe(true);
+    });
+
+    it('generates an OpenAPI spec and README docs when --openapi is used', () => {
+      runCLI('-n openapitest -f express --openapi -p 8080 --skip-install');
+
+      const appDir = path.join(testOutput, 'openapitest');
+      const specPath = path.join(appDir, 'docs', 'openapi.yaml');
+      const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8');
+      const spec = fs.readFileSync(specPath, 'utf-8');
+
+      expect(fs.existsSync(specPath)).toBe(true);
+      expect(spec).toContain('openapi: 3.0.3');
+      expect(spec).toContain("title: 'openapitest API'");
+      expect(spec).toContain('url: http://localhost:8080');
+      expect(spec).toContain('operationId: getRoot');
+      expect(spec).toContain('operationId: postRoot');
+      expect(spec).toContain('operationId: getHealth');
+      expect(spec).toContain('NotFound:');
+      expect(spec).toContain('InternalServerError:');
+      expect(readme).toContain('docs/openapi.yaml');
+    });
+
+    it('does not generate an OpenAPI spec by default', () => {
+      runCLI('-n noopenapi -f express --skip-install');
+
+      expect(
+        fs.existsSync(path.join(testOutput, 'noopenapi', 'docs', 'openapi.yaml'))
+      ).toBe(false);
     });
   });
 
@@ -281,6 +310,14 @@ describe('CLI Integration', () => {
     it('rejects --view with the node framework', () => {
       expect(() => runCLI('-n nodeview -f node -v ejs --skip-install')).toThrow();
       expect(fs.existsSync(path.join(testOutput, 'nodeview'))).toBe(false);
+    });
+
+    it('rejects --openapi with the node framework', () => {
+      expectCLIError(
+        '-n nodeopenapi -f node --openapi --skip-install',
+        'only supported with the express framework'
+      );
+      expect(fs.existsSync(path.join(testOutput, 'nodeopenapi'))).toBe(false);
     });
 
     it('does not create a views directory for node apps', () => {

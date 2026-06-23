@@ -11,6 +11,7 @@ import {
   addGitIgnore,
   addDockerSupport,
   addReadme,
+  addOpenApiSpec,
   addEnvExample,
 } from '../../lib/file_generator.js';
 import { VIEW_ENGINES, DEPENDENCY_VERSIONS } from '../../lib/constants.js';
@@ -409,6 +410,14 @@ describe('file_generator', () => {
       expect(readme).not.toContain('# Project Name');
     });
 
+    it('documents the OpenAPI spec when requested', () => {
+      addReadme(testDir, templatesDir, { openapi: true });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+
+      expect(readme).toContain('## OpenAPI Specification');
+      expect(readme).toContain('docs/openapi.yaml');
+    });
+
     it('updates Node README localhost URLs when configured', () => {
       addReadme(testDir, nodeTemplatesDir, { port: 8081 });
       const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
@@ -431,6 +440,36 @@ describe('file_generator', () => {
       fs.ensureDirSync(emptyTemplates);
       expect(() => addReadme(testDir, emptyTemplates)).not.toThrow();
       expect(fs.existsSync(path.join(testDir, 'README.md'))).toBe(false);
+    });
+  });
+
+  describe('addOpenApiSpec', () => {
+    it('writes docs/openapi.yaml with app name, port, and route docs', () => {
+      addOpenApiSpec(testDir, { appName: 'my-api', port: 8080 });
+      const specPath = path.join(testDir, 'docs', 'openapi.yaml');
+      const spec = fs.readFileSync(specPath, 'utf-8');
+
+      expect(fs.existsSync(specPath)).toBe(true);
+      expect(spec).toContain('openapi: 3.0.3');
+      expect(spec).toContain("title: 'my-api API'");
+      expect(spec).toContain('url: http://localhost:8080');
+      expect(spec).toContain('operationId: getRoot');
+      expect(spec).toContain('operationId: postRoot');
+      expect(spec).toContain('operationId: getHealth');
+      expect(spec).toContain("NotFound:");
+      expect(spec).toContain("InternalServerError:");
+    });
+
+    it('documents rendered HTML for root GET when a view is selected', () => {
+      addOpenApiSpec(testDir, { appName: 'view-api', port: 3000, view: 'pug' });
+      const spec = fs.readFileSync(
+        path.join(testDir, 'docs', 'openapi.yaml'),
+        'utf-8'
+      );
+
+      expect(spec).toContain('text/html:');
+      expect(spec).toContain('Rendered welcome page');
+      expect(spec).not.toContain('$ref: \'#/components/schemas/WelcomeResponse\'');
     });
   });
 

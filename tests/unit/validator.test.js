@@ -135,6 +135,23 @@ describe('validateOptions', () => {
       );
       expect(result.isValid).toBe(true);
     });
+
+    it('rejects --openapi with the node framework', () => {
+      const result = validateOptions(
+        { framework: 'node', openapi: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('--openapi option'))).toBe(true);
+    });
+
+    it('allows --openapi with the express framework', () => {
+      const result = validateOptions(
+        { framework: 'express', openapi: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
   });
 
   describe('combined validation', () => {
