@@ -62,9 +62,9 @@ describe('packaged CLI (from npm tarball)', () => {
     if (workDir) fs.removeSync(workDir);
   });
 
-  const generateFromTarball = (name, framework) => {
+  const generateFromTarball = (name, framework, extra = '') => {
     execSync(
-      `node "${extractedBin}" -n ${name} -f ${framework} --skip-install`,
+      `node "${extractedBin}" -n ${name} -f ${framework} ${extra} --skip-install`,
       {
         cwd: workDir,
         encoding: 'utf-8',
@@ -94,5 +94,20 @@ describe('packaged CLI (from npm tarball)', () => {
     const contents = fs.readFileSync(gitignorePath, 'utf-8');
     expect(contents.length).toBeGreaterThan(0);
     expect(contents).toContain('node_modules');
+  }, 120000);
+
+  it('ships TypeScript templates in a generated express app', () => {
+    const appDir = generateFromTarball('pack-ts-test', 'express', '--typescript');
+
+    expect(fs.existsSync(path.join(appDir, 'src', 'index.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(appDir, 'src', 'routes', 'index.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(appDir, 'test', 'app.test.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(appDir, 'tsconfig.json'))).toBe(true);
+
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(appDir, 'package.json'), 'utf-8')
+    );
+    expect(pkg.scripts.build).toBe('tsc');
+    expect(pkg.devDependencies.typescript).toBeDefined();
   }, 120000);
 });

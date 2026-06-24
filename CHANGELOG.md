@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add `--typescript` support for generated Express apps with `src/index.ts`, `tsconfig.json`, `tsx` development, `tsc` builds to `dist`, generated TypeScript tests, and Docker support.
+- Keep JavaScript output unchanged by default and reject `--typescript` with the plain Node framework.
+
 ## 2.2.3 - 2026-06-23
 
 - Improve README trust signals with status badges, a faster quick start, generated-output details, and release integrity notes.
