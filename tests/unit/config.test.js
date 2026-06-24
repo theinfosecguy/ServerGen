@@ -29,6 +29,13 @@ describe('getConfig', () => {
       );
     });
 
+    it('sets hono template path', () => {
+      const config = getConfig(baseDir, cwd);
+      expect(config.paths.templates.hono).toBe(
+        path.join(baseDir, '..', 'templates', 'hono')
+      );
+    });
+
     it('sets views path', () => {
       const config = getConfig(baseDir, cwd);
       expect(config.paths.templates.views).toBe(
@@ -47,6 +54,7 @@ describe('getConfig', () => {
       const config = getConfig(baseDir, cwd);
       expect(config.validation.frameworks).toContain('node');
       expect(config.validation.frameworks).toContain('express');
+      expect(config.validation.frameworks).toContain('hono');
     });
 
     it('includes valid views', () => {

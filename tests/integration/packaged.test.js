@@ -95,6 +95,33 @@ describe('packaged CLI (from npm tarball)', () => {
     expect(spec).toContain('url: http://localhost:8080');
   }, 120000);
 
+  it('ships Hono templates and OpenAPI docs in the packaged CLI', () => {
+    const appDir = generateFromTarball(
+      'pack-hono',
+      'hono',
+      '--openapi -p 8787'
+    );
+
+    expect(fs.existsSync(path.join(appDir, 'src', 'index.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(appDir, 'test', 'app.test.ts'))).toBe(true);
+    expect(fs.existsSync(path.join(appDir, 'tsconfig.json'))).toBe(true);
+
+    const pkg = JSON.parse(
+      fs.readFileSync(path.join(appDir, 'package.json'), 'utf-8')
+    );
+    expect(pkg.dependencies.hono).toBeDefined();
+    expect(pkg.dependencies['@hono/node-server']).toBeDefined();
+    expect(pkg.scripts.test).toBe('node --import tsx --test test/**/*.test.ts');
+
+    const spec = fs.readFileSync(
+      path.join(appDir, 'docs', 'openapi.yaml'),
+      'utf-8'
+    );
+    expect(spec).toContain("title: 'pack-hono API'");
+    expect(spec).toContain('operationId: getAbout');
+    expect(spec).toContain('operationId: getContact');
+  }, 120000);
+
   it('ships a real .gitignore in a generated node app', () => {
     const appDir = generateFromTarball('pack-test-node', 'node');
 

@@ -35,12 +35,14 @@ describe('interactive prompts', () => {
       '',
       '',
       '',
+      '',
     ]);
 
     const result = await promptForInteractiveOptions(harness);
 
     expect(result).toEqual({
       name: 'My API',
+      framework: 'express',
       typescript: true,
       openapi: true,
       db: false,
@@ -50,6 +52,7 @@ describe('interactive prompts', () => {
     });
     expect(harness.prompts).toEqual([
       'Project name: ',
+      'Framework (express/node/hono) [express]: ',
       'Language (TypeScript/JavaScript) [TypeScript]: ',
       'OpenAPI spec? (Y/n): ',
       'Database (none/mongodb) [none]: ',
@@ -62,6 +65,7 @@ describe('interactive prompts', () => {
   it('maps explicit answers to generator options', async () => {
     const harness = createPromptHarness([
       'api',
+      'express',
       'javascript',
       'no',
       'mongoose',
@@ -74,6 +78,7 @@ describe('interactive prompts', () => {
 
     expect(result).toEqual({
       name: 'api',
+      framework: 'express',
       typescript: false,
       openapi: false,
       db: true,
@@ -87,6 +92,8 @@ describe('interactive prompts', () => {
     const harness = createPromptHarness([
       '',
       'api',
+      'rails',
+      'express',
       'ruby',
       'ts',
       'maybe',
@@ -106,6 +113,7 @@ describe('interactive prompts', () => {
 
     expect(result).toMatchObject({
       name: 'api',
+      framework: 'express',
       typescript: true,
       openapi: true,
       db: true,
@@ -114,6 +122,7 @@ describe('interactive prompts', () => {
       skipInstall: false,
     });
     expect(harness.messages.join('')).toContain('Project name is required.');
+    expect(harness.messages.join('')).toContain('Please choose express, node, or hono.');
     expect(harness.messages.join('')).toContain('Please choose TypeScript or JavaScript.');
     expect(harness.messages.join('')).toContain('Please answer yes or no.');
     expect(harness.messages.join('')).toContain('Please choose none or mongodb.');
@@ -122,7 +131,7 @@ describe('interactive prompts', () => {
   });
 
   it('allows custom default ports', async () => {
-    const harness = createPromptHarness(['api', '', '', '', '', '', '']);
+    const harness = createPromptHarness(['api', '', '', '', '', '', '', '']);
 
     const result = await promptForInteractiveOptions({
       ...harness,
@@ -131,6 +140,53 @@ describe('interactive prompts', () => {
 
     expect(result.port).toBe(8088);
     expect(harness.prompts).toContain('Port [8088]: ');
+  });
+
+  it('uses implicit TypeScript and skips Express-only prompts for Hono', async () => {
+    const harness = createPromptHarness(['api', 'hono', 'y', '8787', 'n']);
+
+    const result = await promptForInteractiveOptions(harness);
+
+    expect(result).toEqual({
+      name: 'api',
+      framework: 'hono',
+      typescript: true,
+      openapi: true,
+      db: false,
+      view: undefined,
+      port: 8787,
+      skipInstall: true,
+    });
+    expect(harness.prompts).toEqual([
+      'Project name: ',
+      'Framework (express/node/hono) [express]: ',
+      'OpenAPI spec? (Y/n): ',
+      'Port [3000]: ',
+      'Install dependencies? (Y/n): ',
+    ]);
+  });
+
+  it('skips TypeScript and Express-only prompts for Node', async () => {
+    const harness = createPromptHarness(['api', 'node', '8081', 'n']);
+
+    const result = await promptForInteractiveOptions(harness);
+
+    expect(result).toEqual({
+      name: 'api',
+      framework: 'node',
+      typescript: false,
+      openapi: false,
+      db: false,
+      view: undefined,
+      port: 8081,
+      skipInstall: true,
+    });
+    expect(harness.prompts).toEqual([
+      'Project name: ',
+      'Framework (express/node/hono) [express]: ',
+      'Port [3000]: ',
+      'Install dependencies? (Y/n): ',
+    ]);
   });
 });
 

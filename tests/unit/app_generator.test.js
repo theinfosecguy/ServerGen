@@ -44,6 +44,7 @@ function makeConfig() {
       cwd: testDir,
       templates: {
         express: path.join(testDir, 'templates', 'express'),
+        hono: path.join(testDir, 'templates', 'hono'),
         node: path.join(testDir, 'templates', 'node'),
         views: path.join(testDir, 'templates', 'views'),
       },
@@ -119,6 +120,14 @@ describe('AppGenerator', () => {
         deps
       );
       expect(gen.templatesDir).toBe(config.paths.templates.node);
+    });
+
+    it('selects the hono templates dir for hono framework', () => {
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', config },
+        deps
+      );
+      expect(gen.templatesDir).toBe(config.paths.templates.hono);
     });
 
     it('wires the injected dependencies onto the instance', () => {
@@ -312,12 +321,48 @@ describe('AppGenerator', () => {
       expect(deps.fileCreator.createNodeApp).toHaveBeenCalledTimes(1);
       expect(deps.fileCreator.createExpressApp).not.toHaveBeenCalled();
     });
+
+    it('calls createHonoApp for hono framework when available', () => {
+      deps.fileCreator.createHonoApp = vi.fn();
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', typescript: true, config },
+        deps
+      );
+      gen.createAppStructure();
+      expect(deps.fileCreator.createHonoApp).toHaveBeenCalledWith(
+        config.paths.templates.hono,
+        path.join(testDir, 'myapp'),
+        'myapp',
+        { typescript: true }
+      );
+      expect(deps.fileCreator.createExpressApp).not.toHaveBeenCalled();
+      expect(deps.fileCreator.createNodeApp).not.toHaveBeenCalled();
+    });
+
+    it('fails clearly when hono generation is not available', () => {
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', config },
+        deps
+      );
+      expect(() => gen.createAppStructure()).toThrow('Hono generation is not available');
+      expect(deps.fileCreator.createExpressApp).not.toHaveBeenCalled();
+      expect(deps.fileCreator.createNodeApp).not.toHaveBeenCalled();
+    });
   });
 
   describe('setupViews', () => {
     it('is a no-op for the node framework', () => {
       const gen = new AppGenerator(
         { appName: 'myapp', framework: 'node', view: 'ejs', config },
+        deps
+      );
+      gen.setupViews();
+      expect(deps.fileCreator.handleViews).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op for the hono framework', () => {
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', view: 'ejs', config },
         deps
       );
       gen.setupViews();
@@ -400,6 +445,15 @@ describe('AppGenerator', () => {
       gen.setupDatabase();
       expect(deps.fileCreator.handleConfig).not.toHaveBeenCalled();
     });
+
+    it('does not call handleConfig for the hono framework', () => {
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', db: true, config },
+        deps
+      );
+      gen.setupDatabase();
+      expect(deps.fileCreator.handleConfig).not.toHaveBeenCalled();
+    });
   });
 
   describe('addSupportFiles', () => {
@@ -429,7 +483,7 @@ describe('AppGenerator', () => {
       );
     });
 
-    it('adds an OpenAPI spec only for express apps when requested', () => {
+    it('adds an OpenAPI spec for express apps when requested', () => {
       const gen = new AppGenerator(
         {
           appName: 'myapp',
@@ -446,12 +500,37 @@ describe('AppGenerator', () => {
 
       expect(deps.fileCreator.addOpenApiSpec).toHaveBeenCalledWith(
         path.join(testDir, 'myapp'),
-        { appName: 'myapp', port: 8080, view: 'ejs' }
+        { appName: 'myapp', framework: 'express', port: 8080, view: 'ejs' }
       );
       expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
         path.join(testDir, 'myapp'),
         config.paths.templates.express,
         { appName: 'myapp', db: false, openapi: true, port: 8080, typescript: false }
+      );
+    });
+
+    it('adds an OpenAPI spec for hono apps when requested', () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'hono',
+          openapi: true,
+          port: 8081,
+          config,
+        },
+        deps
+      );
+
+      gen.addSupportFiles();
+
+      expect(deps.fileCreator.addOpenApiSpec).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        { appName: 'myapp', framework: 'hono', port: 8081, view: undefined }
+      );
+      expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        config.paths.templates.hono,
+        { appName: 'myapp', db: false, openapi: true, port: 8081, typescript: true }
       );
     });
 
@@ -524,6 +603,27 @@ describe('AppGenerator', () => {
 
       const updated = fs.readFileSync(indexPath, 'utf8');
       expect(updated).toContain('process.env.PORT || 8080');
+      expect(updated).not.toContain('process.env.PORT || 3000');
+    });
+
+    it('rewrites the port in src/index.ts for Hono apps', () => {
+      const folderDir = path.join(testDir, 'myapp');
+      fs.ensureDirSync(path.join(folderDir, 'src'));
+      const indexPath = path.join(folderDir, 'src', 'index.ts');
+      fs.writeFileSync(
+        indexPath,
+        'const port = Number(process.env.PORT || 3000);\n',
+        'utf8'
+      );
+
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', port: 8787, config },
+        deps
+      );
+      gen.configurePort();
+
+      const updated = fs.readFileSync(indexPath, 'utf8');
+      expect(updated).toContain('process.env.PORT || 8787');
       expect(updated).not.toContain('process.env.PORT || 3000');
     });
 

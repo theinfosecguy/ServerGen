@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { validateOptions } from '../../lib/validator.js';
 
 const validationRules = {
-  frameworks: ['node', 'express'],
+  frameworks: ['node', 'express', 'hono'],
   views: ['ejs', 'jade', 'pug', 'hbs'],
 };
 
@@ -16,6 +16,11 @@ describe('validateOptions', () => {
 
     it('accepts valid framework: node', () => {
       const result = validateOptions({ framework: 'node' }, validationRules);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('accepts valid framework: hono', () => {
+      const result = validateOptions({ framework: 'hono' }, validationRules);
       expect(result.isValid).toBe(true);
     });
 
@@ -128,6 +133,15 @@ describe('validateOptions', () => {
       expect(result.errors.some((e) => e.includes('express framework'))).toBe(true);
     });
 
+    it('rejects --db with the hono framework', () => {
+      const result = validateOptions(
+        { framework: 'hono', db: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('express framework'))).toBe(true);
+    });
+
     it('allows --db with the express framework', () => {
       const result = validateOptions(
         { framework: 'express', db: true },
@@ -145,6 +159,14 @@ describe('validateOptions', () => {
       expect(result.errors.some((e) => e.includes('--openapi option'))).toBe(true);
     });
 
+    it('allows --openapi with the hono framework', () => {
+      const result = validateOptions(
+        { framework: 'hono', openapi: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
+
     it('allows --openapi with the express framework', () => {
       const result = validateOptions(
         { framework: 'express', openapi: true },
@@ -159,12 +181,20 @@ describe('validateOptions', () => {
         validationRules
       );
       expect(result.isValid).toBe(false);
-      expect(result.errors.some((e) => e.includes('express framework'))).toBe(true);
+      expect(result.errors.some((e) => e.includes('express and hono frameworks'))).toBe(true);
     });
 
     it('allows --typescript with the express framework', () => {
       const result = validateOptions(
         { framework: 'express', typescript: true },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('allows --typescript with the hono framework', () => {
+      const result = validateOptions(
+        { framework: 'hono', typescript: true },
         validationRules
       );
       expect(result.isValid).toBe(true);
