@@ -28,6 +28,11 @@ the files consumers need:
 - `CHANGELOG.md`
 - `LICENSE`
 
+This checkout includes the root `servergen` package and the
+`packages/create-servergen` npm-create wrapper. Confirm the wrapper publishes
+the `create-servergen` package name and delegates to the released `servergen`
+CLI without duplicating generation logic.
+
 The generated app smoke expectations are:
 
 - The packaged CLI installs from the packed tarball, not the working tree.
@@ -82,6 +87,11 @@ git add package.json CHANGELOG.md
 git commit -m "chore: release x.y.z"
 ```
 
+Update `packages/create-servergen/package.json` in the same release change. The
+`servergen` and `create-servergen` package versions should normally match for
+adoption releases so `npm create servergen@latest` and `npx servergen@latest`
+resolve to the same documented behavior.
+
 ## Tag and release workflow
 
 Create an annotated version tag from the exact commit that should be released:
@@ -97,14 +107,43 @@ the following:
 
 1. Installs dependencies on Node.js 22.
 2. Runs `npm run test:package`.
-3. Publishes the package to npm with `npm publish --tag latest`.
-4. Uses npm trusted publishing through GitHub OIDC, so no long-lived npm token is
+3. Publishes `servergen` to npm with `npm publish --tag latest`.
+4. Publishes `create-servergen` from `packages/create-servergen`.
+5. Uses npm trusted publishing through GitHub OIDC, so no long-lived npm token is
    required and npm provenance is attached to the package.
-5. Creates the matching GitHub Release, or marks the existing matching release as
+6. Creates the matching GitHub Release, or marks the existing matching release as
    latest.
 
 Do not run a separate local `npm publish` for normal releases. Let the tag
 workflow publish once.
+
+### Publishing `create-servergen`
+
+The release workflow publishes the root `servergen` package first, then
+publishes `packages/create-servergen`. Before tagging, configure npm trusted
+publishing for both npm packages against this GitHub repository and the
+`Release` workflow so both publishes use OIDC provenance.
+
+If `create-servergen` has never been published before, bootstrap the package
+name before relying on trusted publishing. npm trusted publisher settings are
+configured from an existing package's settings page, so the first publish may
+require an npm owner to publish the wrapper manually or with a short-lived token.
+After the package exists, configure its trusted publisher for the `Release`
+workflow before using tag-based releases.
+
+The package smoke test packs and installs both local tarballs, then verifies the
+wrapper can create an app through the installed `create-servergen` bin. The
+wrapper publish is ordered after the root CLI publish because it depends on the
+just-published `servergen` version.
+
+Post-release verification should check both package names:
+
+```sh
+npm view servergen version dist-tags --json
+npm view create-servergen version dist-tags --json
+npm view "servergen@$VERSION" dist.attestations --json
+npm view "create-servergen@$VERSION" dist.attestations --json
+```
 
 ## Post-release verification
 

@@ -2,7 +2,13 @@
 
 Copy-paste examples for current ServerGen flows.
 
-These examples use `npx --yes servergen@latest` to follow the current published CLI. If you need reproducible output, replace `latest` with a pinned version. If you have ServerGen installed globally, you can replace that prefix with `servergen`.
+For a guided first run, use the interactive create flow:
+
+```sh
+npm create servergen@latest
+```
+
+The command-by-command examples use `npx --yes servergen@latest` to follow the current published CLI. If you need reproducible output, replace `latest` with a pinned version. If you have ServerGen installed globally, you can replace that prefix with `servergen`.
 
 ## Examples
 
@@ -16,9 +22,10 @@ These examples use `npx --yes servergen@latest` to follow the current published 
 ## Shared Notes
 
 - ServerGen creates a new app directory in your current working directory.
+- `npm create servergen@latest` starts the interactive flow; the `npx --yes servergen@latest ...` examples show direct CLI equivalents.
 - The default framework is Express.
 - Generated apps require Node.js 20 or newer.
 - Generation runs `npm install` unless you pass `--skip-install`.
 - When install is not skipped, npm also creates `node_modules/` and `package-lock.json` inside the generated app.
-- Express-only options: `--view ejs|pug|hbs`, `--db`, and `--typescript`.
+- Express-only options: `--view ejs|pug|hbs`, `--db`, `--openapi`, and `--typescript`.
 - Generated apps include Docker support files. Express apps also include `.env.example`; Node apps do not.

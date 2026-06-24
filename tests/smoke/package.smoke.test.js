@@ -8,6 +8,7 @@ import { execFileSync, spawn } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..', '..');
+const createPackageRoot = path.join(projectRoot, 'packages', 'create-servergen');
 
 // Heavy, release-gated smoke test. It proves the PUBLISHED package works end to
 // end: build the tarball with `npm pack`, install it into a throwaway project so
@@ -18,6 +19,8 @@ const projectRoot = path.join(__dirname, '..', '..');
 
 const PORTS = { express: 5310, node: 5311, typescript: 5312 };
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const createBinName =
+  process.platform === 'win32' ? 'create-servergen.cmd' : 'create-servergen';
 
 // Sleep helper for retry backoff.
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -67,6 +70,7 @@ describe('published package smoke test', () => {
   let packDir; // holds the built tarball
   let installDir; // throwaway project where the tarball is installed
   let installedBin; // <installDir>/node_modules/servergen/bin/servergen.js
+  let createBin; // <installDir>/node_modules/.bin/create-servergen
   const workDirs = []; // generation cwds, cleaned up in afterAll
   let child; // currently running server, killed in afterEach
 
@@ -91,6 +95,20 @@ describe('published package smoke test', () => {
     const tarballPath = path.join(packDir, tarballName);
     expect(fs.existsSync(tarballPath)).toBe(true);
 
+    const createPackOutput = execFileSync(
+      npmCmd,
+      ['pack', '--pack-destination', packDir],
+      { cwd: createPackageRoot, encoding: 'utf-8', timeout: 120000 }
+    );
+    const createTarballName = createPackOutput
+      .trim()
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .pop();
+    const createTarballPath = path.join(packDir, createTarballName);
+    expect(fs.existsSync(createTarballPath)).toBe(true);
+
     // Stand up a throwaway project and install the tarball into it so that
     // servergen + its production deps resolve under node_modules, exactly like
     // a real consumer install.
@@ -101,8 +119,16 @@ describe('published package smoke test', () => {
     });
     execFileSync(
       npmCmd,
-      ['install', tarballPath, '--no-audit', '--no-fund'],
+      ['install', tarballPath, createTarballPath, '--no-audit', '--no-fund'],
       { cwd: installDir, encoding: 'utf-8', timeout: 180000 }
+    );
+
+    const lockfile = fs.readJsonSync(path.join(installDir, 'package-lock.json'));
+    expect(lockfile.packages['node_modules/servergen'].resolved).toContain(
+      tarballName
+    );
+    expect(lockfile.packages['node_modules/create-servergen'].resolved).toContain(
+      createTarballName
     );
 
     installedBin = path.join(
@@ -113,6 +139,9 @@ describe('published package smoke test', () => {
       'servergen.js'
     );
     expect(fs.existsSync(installedBin)).toBe(true);
+
+    createBin = path.join(installDir, 'node_modules', '.bin', createBinName);
+    expect(fs.existsSync(createBin)).toBe(true);
   }, 240000);
 
   afterEach(() => {
@@ -184,6 +213,26 @@ describe('published package smoke test', () => {
       });
       proc.kill(signal);
     });
+
+  it('packs and installs create-servergen, then delegates through its bin', () => {
+    const workDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'servergen-create-smoke-work-')
+    );
+    workDirs.push(workDir);
+
+    execFileSync(
+      createBin,
+      ['wrappednode', '-f', 'node', '-p', '5322', '--skip-install'],
+      { cwd: workDir, encoding: 'utf-8', timeout: 120000 }
+    );
+
+    const appDir = path.join(workDir, 'wrappednode');
+    expect(fs.existsSync(path.join(appDir, 'index.js'))).toBe(true);
+    expect(fs.existsSync(path.join(appDir, 'package.json'))).toBe(true);
+    expect(fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8')).toContain(
+      'http://127.0.0.1:5322'
+    );
+  }, 120000);
 
   it(
     'generates, builds, tests, boots an Express app, serves HTTP, and stops cleanly',

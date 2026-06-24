@@ -14,6 +14,10 @@ import { validateOptions } from '../lib/validator.js';
 import { createGenerator } from '../index.js';
 import * as fileName from '../lib/fileName.js';
 import * as logger from '../lib/logger.js';
+import {
+  isInteractiveTerminal,
+  runInteractiveWizard,
+} from '../lib/interactive.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,7 +52,8 @@ Examples:
   $ servergen my-api --typescript     Express app with TypeScript
   $ servergen my-api -p 8080          use a custom port
   $ servergen my-api --skip-install   scaffold without running npm install
-  $ servergen --name my-api           name via flag (equivalent to positional)`
+  $ servergen --name my-api           name via flag (equivalent to positional)
+  $ servergen                         start the interactive wizard`
   )
   .parse(process.argv);
 
@@ -61,56 +66,86 @@ if (options.debug) {
 
 logger.debug('CLI options received', { ...options, positionalName });
 
-const validationResult = validateOptions(options, config.validation);
-if (!validationResult.isValid) {
-  validationResult.errors.forEach((error) => logger.error(error));
-  process.exit(1);
-}
-
-// Resolve the app name from the positional argument or the --name flag.
-if (positionalName && options.name && positionalName !== options.name) {
-  logger.error(
-    `Conflicting app names: "${positionalName}" (positional) and "${options.name}" (--name). Provide only one.`
-  );
-  process.exit(1);
-}
-
-const rawName = positionalName || options.name;
-
-if (!rawName) {
-  logger.error(
-    'Missing app name. Provide it as a positional argument (servergen my-api) or with --name.'
-  );
-  process.exit(1);
-}
-
-const appName = fileName.cleanAppName(rawName);
-
-if (!appName) {
-  logger.error(
-    'App name must contain at least one alphanumeric character. Please provide a valid name.'
-  );
-  process.exit(1);
-}
-
-const port = parseInt(options.port, 10) || 3000;
-const skipInstall = options.skipInstall || false;
-
-logger.debug('Parsed configuration', { appName, port, framework: options.framework, skipInstall, typescript: options.typescript });
-
 /**
  * Main function to run the application generator.
  */
 const main = async () => {
+  if (positionalName && options.name && positionalName !== options.name) {
+    logger.error(
+      `Conflicting app names: "${positionalName}" (positional) and "${options.name}" (--name). Provide only one.`
+    );
+    process.exit(1);
+  }
+
+  let rawName = positionalName || options.name;
+  const resolvedOptions = { ...options };
+
+  if (!rawName) {
+    if (!isInteractiveTerminal(process.stdin, process.stdout)) {
+      logger.error(
+        'Missing app name. Provide it as a positional argument (servergen my-api) or with --name.'
+      );
+      process.exit(1);
+    }
+
+    let wizardOptions;
+    try {
+      wizardOptions = await runInteractiveWizard({
+        input: process.stdin,
+        output: process.stdout,
+        defaults: {
+          port: resolvedOptions.port,
+        },
+      });
+    } catch (err) {
+      logger.error('Interactive wizard cancelled.');
+      logger.debug('Interactive wizard error', err);
+      process.exit(1);
+    }
+
+    rawName = wizardOptions.name;
+    Object.assign(resolvedOptions, wizardOptions, {
+      port: String(wizardOptions.port),
+    });
+
+    logger.debug('Interactive wizard answers received', wizardOptions);
+  }
+
+  const validationResult = validateOptions(resolvedOptions, config.validation);
+  if (!validationResult.isValid) {
+    validationResult.errors.forEach((error) => logger.error(error));
+    process.exit(1);
+  }
+
+  const appName = fileName.cleanAppName(rawName);
+
+  if (!appName) {
+    logger.error(
+      'App name must contain at least one alphanumeric character. Please provide a valid name.'
+    );
+    process.exit(1);
+  }
+
+  const port = parseInt(resolvedOptions.port, 10) || 3000;
+  const skipInstall = resolvedOptions.skipInstall || false;
+
+  logger.debug('Parsed configuration', {
+    appName,
+    port,
+    framework: resolvedOptions.framework,
+    skipInstall,
+    typescript: resolvedOptions.typescript,
+  });
+
   const generator = createGenerator({
     appName,
-    framework: options.framework,
-    view: options.view,
-    db: options.db,
-    openapi: options.openapi,
+    framework: resolvedOptions.framework,
+    view: resolvedOptions.view,
+    db: resolvedOptions.db,
+    openapi: resolvedOptions.openapi,
     port,
     skipInstall,
-    typescript: options.typescript,
+    typescript: resolvedOptions.typescript,
     config,
   });
 
