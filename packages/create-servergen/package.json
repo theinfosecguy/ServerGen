@@ -1,0 +1,37 @@
+{
+  "name": "create-servergen",
+  "version": "2.2.3",
+  "description": "npm create wrapper for the servergen CLI.",
+  "type": "module",
+  "bin": {
+    "create-servergen": "bin/create-servergen.js"
+  },
+  "files": [
+    "bin",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theinfosecguy/ServerGen.git",
+    "directory": "packages/create-servergen"
+  },
+  "keywords": [
+    "create",
+    "create-servergen",
+    "servergen",
+    "scaffold",
+    "cli"
+  ],
+  "author": "Keshav Malik",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/theinfosecguy/ServerGen/issues"
+  },
+  "homepage": "https://github.com/theinfosecguy/ServerGen#readme",
+  "dependencies": {
+    "servergen": "^2.2.3"
+  }
+}
