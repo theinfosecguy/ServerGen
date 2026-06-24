@@ -2,7 +2,13 @@
 
 `create-servergen` is the npm create wrapper for the `servergen` CLI.
 
-After this package is published, users can scaffold with:
+After this package is published, users can scaffold interactively with:
+
+```sh
+npm create servergen@latest
+```
+
+Pass arguments after `--` to use the direct CLI path:
 
 ```sh
 npm create servergen@latest -- my-api --skip-install

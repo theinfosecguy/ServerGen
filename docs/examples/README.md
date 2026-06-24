@@ -27,5 +27,5 @@ The command-by-command examples use `npx --yes servergen@latest` to follow the c
 - Generated apps require Node.js 20 or newer.
 - Generation runs `npm install` unless you pass `--skip-install`.
 - When install is not skipped, npm also creates `node_modules/` and `package-lock.json` inside the generated app.
-- Express-only options: `--view ejs|pug|hbs`, `--db`, and `--typescript`.
+- Express-only options: `--view ejs|pug|hbs`, `--db`, `--openapi`, and `--typescript`.
 - Generated apps include Docker support files. Express apps also include `.env.example`; Node apps do not.

@@ -28,11 +28,10 @@ the files consumers need:
 - `CHANGELOG.md`
 - `LICENSE`
 
-This checkout currently contains only the root `servergen` package. If a
-separate `create-servergen` package is added for `npm create servergen@latest`,
-confirm that package has its own `package.json`, publishes the `create-servergen`
-package name, and depends on or invokes the released `servergen` CLI without
-duplicating generation logic.
+This checkout includes the root `servergen` package and the
+`packages/create-servergen` npm-create wrapper. Confirm the wrapper publishes
+the `create-servergen` package name and delegates to the released `servergen`
+CLI without duplicating generation logic.
 
 The generated app smoke expectations are:
 
@@ -88,11 +87,10 @@ git add package.json CHANGELOG.md
 git commit -m "chore: release x.y.z"
 ```
 
-If a separate `create-servergen` package exists, update its package version in
-the same release change or document why it intentionally differs. The `servergen`
-and `create-servergen` package versions should normally match for adoption
-releases so `npm create servergen@latest` and `npx servergen@latest` resolve to
-the same documented behavior.
+Update `packages/create-servergen/package.json` in the same release change. The
+`servergen` and `create-servergen` package versions should normally match for
+adoption releases so `npm create servergen@latest` and `npx servergen@latest`
+resolve to the same documented behavior.
 
 ## Tag and release workflow
 
@@ -109,10 +107,11 @@ the following:
 
 1. Installs dependencies on Node.js 22.
 2. Runs `npm run test:package`.
-3. Publishes the package to npm with `npm publish --tag latest`.
-4. Uses npm trusted publishing through GitHub OIDC, so no long-lived npm token is
+3. Publishes `servergen` to npm with `npm publish --tag latest`.
+4. Publishes `create-servergen` from `packages/create-servergen`.
+5. Uses npm trusted publishing through GitHub OIDC, so no long-lived npm token is
    required and npm provenance is attached to the package.
-5. Creates the matching GitHub Release, or marks the existing matching release as
+6. Creates the matching GitHub Release, or marks the existing matching release as
    latest.
 
 Do not run a separate local `npm publish` for normal releases. Let the tag
@@ -120,23 +119,17 @@ workflow publish once.
 
 ### Publishing `create-servergen`
 
-The current release workflow publishes the root `servergen` package only. If a
-second `create-servergen` package exists, update `.github/workflows/release.yml`
-before tagging:
+The release workflow publishes the root `servergen` package first, then
+publishes `packages/create-servergen`. Before tagging, configure npm trusted
+publishing for both npm packages against this GitHub repository and the
+`Release` workflow so both publishes use OIDC provenance.
 
-1. Add a smoke step that installs the packed or published `create-servergen`
-   package and runs the `npm create servergen` entry point in a temporary
-   directory, verifying it creates the same generated app shape as the direct
-   CLI path.
-2. Add a publish step for the `create-servergen` package using its real package
-   directory and `npm publish --tag latest`. Do not hard-code a directory until
-   the package exists in the repo.
-3. Configure npm trusted publishing for both npm packages against this GitHub
-   repository and the `Release` workflow so both publishes use OIDC provenance.
-4. Publish both packages from the same tag after the smoke job passes, with the
-   wrapper publish ordered after the root CLI publish if it depends on the just
-   published `servergen` version.
-5. Extend post-release verification to check both package names:
+The package smoke test packs and installs both local tarballs, then verifies the
+wrapper can create an app through the installed `create-servergen` bin. The
+wrapper publish is ordered after the root CLI publish because it depends on the
+just-published `servergen` version.
+
+Post-release verification should check both package names:
 
 ```sh
 npm view servergen version dist-tags --json
