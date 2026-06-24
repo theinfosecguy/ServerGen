@@ -105,4 +105,5 @@ dist
 
 # Prettier File
 
+AGENTS.md
 package-lock.json
