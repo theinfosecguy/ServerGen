@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 2.4.0 - 2026-06-24
+
+- Add Hono framework support with TypeScript-first generated apps, Docker files, generated tests, and JSON routes for `/`, `/about`, `/contact`, and `/health`.
+- Add OpenAPI output for Hono apps while keeping `--view` and `--db` Express-only.
+- Update interactive mode, docs, examples, tarball packaging tests, and release smoke coverage for Hono.
+
 ## 2.3.0 - 2026-06-24
 
 - Add TypeScript support for generated Express apps with `src/index.ts`, `tsconfig.json`, `tsx` development, `tsc` builds to `dist`, generated TypeScript tests, and Docker support.

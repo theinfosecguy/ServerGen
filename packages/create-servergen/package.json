@@ -1,6 +1,6 @@
 {
   "name": "create-servergen",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "npm create wrapper for the servergen CLI.",
   "type": "module",
   "bin": {
@@ -32,6 +32,6 @@
   },
   "homepage": "https://github.com/theinfosecguy/ServerGen#readme",
   "dependencies": {
-    "servergen": "^2.3.0"
+    "servergen": "^2.4.0"
   }
 }
