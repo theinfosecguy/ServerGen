@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * ServerGen CLI - Generates Node.js/Express application scaffolding.
+ * ServerGen CLI - Generates Node.js, Express, and Hono application scaffolding.
  * @module bin/servergen
  */
 
@@ -28,15 +28,15 @@ const config = getConfig(__dirname, process.cwd());
 
 program
   .name('servergen')
-  .description('Scaffold a Node.js or Express application.')
+  .description('Scaffold a Node.js, Express, or Hono application.')
   .version(pkg.version)
   .argument('[name]', 'name of the app to create (alternative to --name)')
   .option('-n, --name <name>', 'name of the app to create')
-  .option('-f, --framework <type>', 'framework: express | node', 'express')
+  .option('-f, --framework <type>', 'framework: express | node | hono', 'express')
   .option('-v, --view <type>', 'view engine (express only): ejs | pug | hbs')
   .option('--db', 'add Mongoose and a MongoDB config (express only)')
-  .option('--openapi', 'generate an OpenAPI spec file (express only)')
-  .option('--typescript', 'generate an Express TypeScript app')
+  .option('--openapi', 'generate an OpenAPI spec file (express and hono)')
+  .option('--typescript', 'generate a TypeScript app where supported')
   .option('-p, --port <number>', 'port for the generated app (1-65535)', '3000')
   .option('--skip-install', 'skip the npm install step')
   .option('--debug', 'enable debug logging')
@@ -46,10 +46,11 @@ program
 Examples:
   $ servergen my-api                  create an Express app (default)
   $ servergen my-api -f node          create a Node app
+  $ servergen my-api -f hono          create a Hono app
   $ servergen my-api -v ejs           Express app with the EJS view engine
   $ servergen my-api --db             Express app with Mongoose/MongoDB
-  $ servergen my-api --openapi        Express app with docs/openapi.yaml
-  $ servergen my-api --typescript     Express app with TypeScript
+  $ servergen my-api --openapi        API app with docs/openapi.yaml
+  $ servergen my-api --typescript     TypeScript where supported
   $ servergen my-api -p 8080          use a custom port
   $ servergen my-api --skip-install   scaffold without running npm install
   $ servergen --name my-api           name via flag (equivalent to positional)
