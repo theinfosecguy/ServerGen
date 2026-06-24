@@ -16,7 +16,7 @@ npm scripts, optional Express views, and optional Mongoose/MongoDB config.
 Requires Node.js 20 or higher.
 
 ```bash
-npx servergen@latest my-api
+npm create servergen@latest
 cd my-api
 npm start
 ```
@@ -33,8 +33,15 @@ Expected response:
 {"status":"ok"}
 ```
 
-ServerGen creates an Express app by default and runs `npm install` in the
-generated app unless `--skip-install` is used.
+The create flow guides you through the app name and options interactively,
+creates an Express app by default, and runs `npm install` in the generated app
+unless install is skipped.
+
+Prefer the direct CLI path when you already know the app name and options:
+
+```bash
+npx servergen@latest my-api
+```
 
 ## What Gets Generated
 
@@ -77,6 +84,7 @@ servergen [options] [name]
 ### Examples
 
 ```bash
+npm create servergen@latest
 npx servergen@latest my-api
 npx servergen@latest my-api --framework node
 npx servergen@latest my-api --view ejs
@@ -93,7 +101,13 @@ steps, see the [scaffold examples](https://github.com/theinfosecguy/ServerGen/tr
 
 ## Install Options
 
-Use `npx` when you want to create an app without adding ServerGen to another
+Use the interactive create flow for the shortest first run:
+
+```bash
+npm create servergen@latest
+```
+
+Use `npx` when you want the direct CLI path without adding ServerGen to another
 project:
 
 ```bash

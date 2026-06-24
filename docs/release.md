@@ -28,6 +28,12 @@ the files consumers need:
 - `CHANGELOG.md`
 - `LICENSE`
 
+This checkout currently contains only the root `servergen` package. If a
+separate `create-servergen` package is added for `npm create servergen@latest`,
+confirm that package has its own `package.json`, publishes the `create-servergen`
+package name, and depends on or invokes the released `servergen` CLI without
+duplicating generation logic.
+
 The generated app smoke expectations are:
 
 - The packaged CLI installs from the packed tarball, not the working tree.
@@ -82,6 +88,12 @@ git add package.json CHANGELOG.md
 git commit -m "chore: release x.y.z"
 ```
 
+If a separate `create-servergen` package exists, update its package version in
+the same release change or document why it intentionally differs. The `servergen`
+and `create-servergen` package versions should normally match for adoption
+releases so `npm create servergen@latest` and `npx servergen@latest` resolve to
+the same documented behavior.
+
 ## Tag and release workflow
 
 Create an annotated version tag from the exact commit that should be released:
@@ -105,6 +117,33 @@ the following:
 
 Do not run a separate local `npm publish` for normal releases. Let the tag
 workflow publish once.
+
+### Publishing `create-servergen`
+
+The current release workflow publishes the root `servergen` package only. If a
+second `create-servergen` package exists, update `.github/workflows/release.yml`
+before tagging:
+
+1. Add a smoke step that installs the packed or published `create-servergen`
+   package and runs the `npm create servergen` entry point in a temporary
+   directory, verifying it creates the same generated app shape as the direct
+   CLI path.
+2. Add a publish step for the `create-servergen` package using its real package
+   directory and `npm publish --tag latest`. Do not hard-code a directory until
+   the package exists in the repo.
+3. Configure npm trusted publishing for both npm packages against this GitHub
+   repository and the `Release` workflow so both publishes use OIDC provenance.
+4. Publish both packages from the same tag after the smoke job passes, with the
+   wrapper publish ordered after the root CLI publish if it depends on the just
+   published `servergen` version.
+5. Extend post-release verification to check both package names:
+
+```sh
+npm view servergen version dist-tags --json
+npm view create-servergen version dist-tags --json
+npm view "servergen@$VERSION" dist.attestations --json
+npm view "create-servergen@$VERSION" dist.attestations --json
+```
 
 ## Post-release verification
 

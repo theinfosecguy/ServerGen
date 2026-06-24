@@ -2,9 +2,12 @@
 
 ## Unreleased
 
-- Add an Express-only `--openapi` option that generates `docs/openapi.yaml` and documents it in the generated README.
-- Add `--typescript` support for generated Express apps with `src/index.ts`, `tsconfig.json`, `tsx` development, `tsc` builds to `dist`, generated TypeScript tests, and Docker support.
-- Keep JavaScript output unchanged by default and reject `--typescript` with the plain Node framework.
+## 2.3.0 - 2026-06-24
+
+- Add TypeScript support for generated Express apps with `src/index.ts`, `tsconfig.json`, `tsx` development, `tsc` builds to `dist`, generated TypeScript tests, and Docker support.
+- Add OpenAPI spec support with an Express-only `--openapi` option that generates `docs/openapi.yaml` and documents it in the generated README.
+- Add interactive mode so new projects can be configured through prompts instead of requiring every option up front.
+- Add npm create support so the recommended first-run path can use `npm create servergen@latest`.
 
 ## 2.2.3 - 2026-06-23
 
