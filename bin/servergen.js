@@ -32,6 +32,7 @@ program
   .option('-v, --view <type>', 'view engine (express only): ejs | pug | hbs')
   .option('--db', 'add Mongoose and a MongoDB config (express only)')
   .option('--openapi', 'generate an OpenAPI spec file (express only)')
+  .option('--typescript', 'generate an Express TypeScript app')
   .option('-p, --port <number>', 'port for the generated app (1-65535)', '3000')
   .option('--skip-install', 'skip the npm install step')
   .option('--debug', 'enable debug logging')
@@ -44,6 +45,7 @@ Examples:
   $ servergen my-api -v ejs           Express app with the EJS view engine
   $ servergen my-api --db             Express app with Mongoose/MongoDB
   $ servergen my-api --openapi        Express app with docs/openapi.yaml
+  $ servergen my-api --typescript     Express app with TypeScript
   $ servergen my-api -p 8080          use a custom port
   $ servergen my-api --skip-install   scaffold without running npm install
   $ servergen --name my-api           name via flag (equivalent to positional)`
@@ -94,7 +96,7 @@ if (!appName) {
 const port = parseInt(options.port, 10) || 3000;
 const skipInstall = options.skipInstall || false;
 
-logger.debug('Parsed configuration', { appName, port, framework: options.framework, skipInstall });
+logger.debug('Parsed configuration', { appName, port, framework: options.framework, skipInstall, typescript: options.typescript });
 
 /**
  * Main function to run the application generator.
@@ -108,6 +110,7 @@ const main = async () => {
     openapi: options.openapi,
     port,
     skipInstall,
+    typescript: options.typescript,
     config,
   });
 

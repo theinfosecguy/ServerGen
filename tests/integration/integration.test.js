@@ -49,6 +49,7 @@ describe('CLI Integration', () => {
       expect(output).toContain('-n, --name');
       expect(output).toContain('-f, --framework');
       expect(output).toContain('--openapi');
+      expect(output).toContain('--typescript');
     });
 
     it('shows usage examples', () => {
@@ -57,6 +58,8 @@ describe('CLI Integration', () => {
       expect(output).toContain('servergen my-api');
       expect(output).toContain('-f node');
       expect(output).toContain('--db');
+      expect(output).toContain('--openapi');
+      expect(output).toContain('--typescript');
     });
 
     it('displays version', () => {
@@ -164,6 +167,53 @@ describe('CLI Integration', () => {
       expect(
         fs.existsSync(path.join(testOutput, 'noopenapi', 'docs', 'openapi.yaml'))
       ).toBe(false);
+    });
+
+    it('generates TypeScript Express app with correct structure and scripts', () => {
+      runCLI('-n tstest -f express --typescript --skip-install');
+
+      const appDir = path.join(testOutput, 'tstest');
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(appDir, 'package.json'), 'utf-8')
+      );
+
+      expect(fs.existsSync(path.join(appDir, 'src', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'routes', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'test', 'app.test.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'tsconfig.json'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'index.js'))).toBe(false);
+      expect(pkg.scripts.dev).toBe('tsx watch src/index.ts');
+      expect(pkg.scripts.build).toBe('tsc');
+      expect(pkg.scripts.start).toBe('node dist/index.js');
+      expect(pkg.scripts.test).toBe('node --import tsx --test test/**/*.test.ts');
+      expect(pkg.devDependencies.typescript).toBeDefined();
+      expect(pkg.devDependencies.tsx).toBeDefined();
+    });
+
+    it('supports TypeScript Express with views, MongoDB and a custom port', () => {
+      runCLI('-n tsfull -f express --typescript --db -v ejs -p 8082 --skip-install');
+
+      const appDir = path.join(testOutput, 'tsfull');
+      const index = fs.readFileSync(path.join(appDir, 'src', 'index.ts'), 'utf-8');
+      const routes = fs.readFileSync(
+        path.join(appDir, 'src', 'routes', 'index.ts'),
+        'utf-8'
+      );
+      const env = fs.readFileSync(path.join(appDir, '.env.example'), 'utf-8');
+      const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8');
+      const dockerfile = fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8');
+
+      expect(index).toContain('process.env.PORT || 8082');
+      expect(index).toContain("import { connectDatabase, mongoose } from './config/mongoose'");
+      expect(index).toContain("app.set('view engine','ejs')");
+      expect(routes).toContain("res.status(200).render('ve_ejs'");
+      expect(fs.existsSync(path.join(appDir, 'src', 'config', 'mongoose.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'views', 've_ejs.ejs'))).toBe(true);
+      expect(env).toContain('MONGODB_URI');
+      expect(readme).toContain('src/index.ts');
+      expect(readme).toContain('http://localhost:8082');
+      expect(dockerfile).toContain('EXPOSE 8082');
+      expect(dockerfile).toContain('npm run build');
     });
   });
 
@@ -320,6 +370,11 @@ describe('CLI Integration', () => {
       expect(fs.existsSync(path.join(testOutput, 'nodeopenapi'))).toBe(false);
     });
 
+    it('rejects --typescript with the node framework', () => {
+      expect(() => runCLI('-n nodets -f node --typescript --skip-install')).toThrow();
+      expect(fs.existsSync(path.join(testOutput, 'nodets'))).toBe(false);
+    });
+
     it('does not create a views directory for node apps', () => {
       runCLI('-n nodenoview -f node --skip-install');
       expect(fs.existsSync(path.join(testOutput, 'nodenoview', 'views'))).toBe(false);
@@ -393,6 +448,7 @@ describe('CLI Integration', () => {
         'utf-8'
       );
       expect(index).toContain('process.env.PORT || 3000');
+      expect(fs.existsSync(path.join(testOutput, 'defaultapp', 'src', 'index.ts'))).toBe(false);
     });
   });
 
