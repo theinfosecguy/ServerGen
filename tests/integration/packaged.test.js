@@ -85,6 +85,16 @@ describe('packaged CLI (from npm tarball)', () => {
     expect(contents).toContain('node_modules');
   }, 120000);
 
+  it('generates OpenAPI docs from the packaged CLI', () => {
+    const appDir = generateFromTarball('pack-openapi', 'express', '--openapi -p 8080');
+    const specPath = path.join(appDir, 'docs', 'openapi.yaml');
+    const spec = fs.readFileSync(specPath, 'utf-8');
+
+    expect(fs.existsSync(specPath)).toBe(true);
+    expect(spec).toContain("title: 'pack-openapi API'");
+    expect(spec).toContain('url: http://localhost:8080');
+  }, 120000);
+
   it('ships a real .gitignore in a generated node app', () => {
     const appDir = generateFromTarball('pack-test-node', 'node');
 

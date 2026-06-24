@@ -45,6 +45,7 @@ generated app unless `--skip-install` is used.
 | `--framework node` | Plain Node.js HTTP server with `/`, `/about`, `/contact`, and `/health`, plus MVC folders, Docker files, `.gitignore`, generated `README.md`, and `package.json`. |
 | `--view ejs`, `pug`, or `hbs` | Adds the selected Express view template and renders it from `/`. |
 | `--db` | Adds Mongoose, `config/mongoose.js`, and `MONGODB_URI` in `.env.example` for Express apps. |
+| `--openapi` | Adds `docs/openapi.yaml`, a static OpenAPI 3.0 spec for the generated Express routes. |
 
 Generated apps include `npm start` and `npm run dev`. Express apps also include
 `npm test`. TypeScript Express apps also include `npm run build`.
@@ -65,6 +66,7 @@ servergen [options] [name]
   -f, --framework <type>  framework: express | node (default: "express")
   -v, --view <type>       view engine (express only): ejs | pug | hbs
   --db                    add Mongoose and a MongoDB config (express only)
+  --openapi               generate an OpenAPI spec file (express only)
   --typescript            generate an Express TypeScript app
   -p, --port <number>     port for the generated app (1-65535) (default: "3000")
   --skip-install          skip the npm install step
@@ -79,6 +81,7 @@ npx servergen@latest my-api
 npx servergen@latest my-api --framework node
 npx servergen@latest my-api --view ejs
 npx servergen@latest my-api --db
+npx servergen@latest my-api --openapi
 npx servergen@latest my-api --typescript
 npx servergen@latest my-api --port 8080
 npx servergen@latest my-api --skip-install

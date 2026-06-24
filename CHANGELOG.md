@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Add an Express-only `--openapi` option that generates `docs/openapi.yaml` and documents it in the generated README.
 - Add `--typescript` support for generated Express apps with `src/index.ts`, `tsconfig.json`, `tsx` development, `tsc` builds to `dist`, generated TypeScript tests, and Docker support.
 - Keep JavaScript output unchanged by default and reject `--typescript` with the plain Node framework.
 

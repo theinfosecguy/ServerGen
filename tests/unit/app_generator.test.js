@@ -20,6 +20,7 @@ function makeDeps() {
       addGitIgnore: vi.fn(),
       addDockerSupport: vi.fn(),
       addReadme: vi.fn(),
+      addOpenApiSpec: vi.fn(),
       addEnvExample: vi.fn(),
     },
     displayer: { beginMessage: vi.fn(), endMessage: vi.fn() },
@@ -89,6 +90,11 @@ describe('AppGenerator', () => {
       expect(gen.skipInstall).toBe(false);
     });
 
+    it('defaults openapi to false when not provided', () => {
+      const gen = new AppGenerator({ appName: 'myapp', config }, deps);
+      expect(gen.openapi).toBe(false);
+    });
+
     it('defaults typescript to false when not provided', () => {
       const gen = new AppGenerator({ appName: 'myapp', config }, deps);
       expect(gen.typescript).toBe(false);
@@ -142,6 +148,7 @@ describe('AppGenerator', () => {
       expect(deps.fileCreator.addGitIgnore).toHaveBeenCalledTimes(1);
       expect(deps.fileCreator.addDockerSupport).toHaveBeenCalledTimes(1);
       expect(deps.fileCreator.addReadme).toHaveBeenCalledTimes(1);
+      expect(deps.fileCreator.addOpenApiSpec).not.toHaveBeenCalled();
       expect(deps.fileCreator.addEnvExample).toHaveBeenCalledTimes(1);
       expect(deps.logger.success).toHaveBeenCalledWith(
         'Application myapp created successfully'
@@ -408,18 +415,60 @@ describe('AppGenerator', () => {
       expect(deps.fileCreator.addDockerSupport).toHaveBeenCalledWith(
         folderDir,
         templatesDir,
-        { db: false, port: 3000, typescript: false }
+        { db: false, openapi: false, port: 3000, typescript: false }
       );
       expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
         folderDir,
         templatesDir,
-        { appName: 'myapp', db: false, port: 3000, typescript: false }
+        { appName: 'myapp', db: false, openapi: false, port: 3000, typescript: false }
       );
       expect(deps.fileCreator.addEnvExample).toHaveBeenCalledWith(
         folderDir,
         templatesDir,
-        { db: false, port: 3000, typescript: false }
+        { db: false, openapi: false, port: 3000, typescript: false }
       );
+    });
+
+    it('adds an OpenAPI spec only for express apps when requested', () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'express',
+          openapi: true,
+          port: 8080,
+          view: 'ejs',
+          config,
+        },
+        deps
+      );
+
+      gen.addSupportFiles();
+
+      expect(deps.fileCreator.addOpenApiSpec).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        { appName: 'myapp', port: 8080, view: 'ejs' }
+      );
+      expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        config.paths.templates.express,
+        { appName: 'myapp', db: false, openapi: true, port: 8080, typescript: false }
+      );
+    });
+
+    it('does not add an OpenAPI spec for node apps', () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'nodeapp',
+          framework: 'node',
+          openapi: true,
+          config,
+        },
+        deps
+      );
+
+      gen.addSupportFiles();
+
+      expect(deps.fileCreator.addOpenApiSpec).not.toHaveBeenCalled();
     });
   });
 
