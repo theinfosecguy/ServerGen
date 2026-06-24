@@ -7,9 +7,10 @@
 [![Node >=20](https://img.shields.io/badge/node-%3E%3D20-brightgreen.svg)](package.json)
 [![GitHub release](https://img.shields.io/github/v/release/theinfosecguy/ServerGen?display_name=tag)](https://github.com/theinfosecguy/ServerGen/releases/latest)
 
-ServerGen is an npm CLI for scaffolding Node.js and Express API projects with
-practical defaults: MVC-style folders, health checks, Docker files, ready-to-run
-npm scripts, optional Express views, and optional Mongoose/MongoDB config.
+ServerGen is an npm CLI for scaffolding Node.js, Express, and Hono API projects
+with practical defaults: MVC-style folders, health checks, Docker files,
+ready-to-run npm scripts, optional Express views, and optional
+Mongoose/MongoDB config.
 
 ## 30-Second Quick Start
 
@@ -48,14 +49,15 @@ npx servergen@latest my-api
 | Choice | Output |
 | --- | --- |
 | Default Express app | `index.js`, `routes/index.js`, `controllers/`, `model/`, `views/`, `.env.example`, `Dockerfile`, `.dockerignore`, `.gitignore`, generated `README.md`, `package.json`, and `test/app.test.js`. |
-| `--typescript` | Express app with `src/index.ts`, `src/routes/index.ts`, `tsconfig.json`, `test/app.test.ts`, `tsx` for development, and `dist/` output for production start. |
+| `--typescript` | TypeScript Express app with `src/index.ts`, `src/routes/index.ts`, `tsconfig.json`, `test/app.test.ts`, `tsx` for development, and `dist/` output for production start. Hono apps are TypeScript by default. |
 | `--framework node` | Plain Node.js HTTP server with `/`, `/about`, `/contact`, and `/health`, plus MVC folders, Docker files, `.gitignore`, generated `README.md`, and `package.json`. |
+| `--framework hono` | TypeScript Hono API app with `src/index.ts`, `tsconfig.json`, `test/app.test.ts`, Docker files, `.gitignore`, generated `README.md`, and `package.json`. |
 | `--view ejs`, `pug`, or `hbs` | Adds the selected Express view template and renders it from `/`. |
 | `--db` | Adds Mongoose, `config/mongoose.js`, and `MONGODB_URI` in `.env.example` for Express apps. |
-| `--openapi` | Adds `docs/openapi.yaml`, a static OpenAPI 3.0 spec for the generated Express routes. |
+| `--openapi` | Adds `docs/openapi.yaml`, a static OpenAPI 3.0 spec for generated Express and Hono routes. |
 
 Generated apps include `npm start` and `npm run dev`. Express apps also include
-`npm test`. TypeScript Express apps also include `npm run build`.
+`npm test`. TypeScript Express and Hono apps also include `npm run build`.
 
 ## CLI Usage
 
@@ -70,11 +72,11 @@ servergen [options] [name]
 ```text
   -V, --version           output the version number
   -n, --name <name>       name of the app to create
-  -f, --framework <type>  framework: express | node (default: "express")
+  -f, --framework <type>  framework: express | node | hono (default: "express")
   -v, --view <type>       view engine (express only): ejs | pug | hbs
   --db                    add Mongoose and a MongoDB config (express only)
-  --openapi               generate an OpenAPI spec file (express only)
-  --typescript            generate an Express TypeScript app
+  --openapi               generate an OpenAPI spec file (express and hono)
+  --typescript            generate a TypeScript app where supported
   -p, --port <number>     port for the generated app (1-65535) (default: "3000")
   --skip-install          skip the npm install step
   --debug                 enable debug logging
@@ -87,6 +89,7 @@ servergen [options] [name]
 npm create servergen@latest
 npx servergen@latest my-api
 npx servergen@latest my-api --framework node
+npx servergen@latest my-api --framework hono
 npx servergen@latest my-api --view ejs
 npx servergen@latest my-api --db
 npx servergen@latest my-api --openapi
@@ -137,7 +140,7 @@ servergen my-api
 Tagged releases are published from GitHub Actions with npm trusted publishing
 and provenance, using OIDC instead of a long-lived npm token. Before publishing,
 the release workflow packs the package, installs that tarball in a throwaway
-project, scaffolds Express and Node apps, starts them, and verifies live HTTP
+project, scaffolds Express, Hono, and Node apps, starts them, and verifies live HTTP
 responses.
 
 The same workflow creates or updates the matching GitHub Release as `latest`

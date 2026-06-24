@@ -1,7 +1,7 @@
 name: Release
 
 # Release pipeline:
-# 1) smoke: pack, install the tarball, scaffold Node and Express apps, boot their
+# 1) smoke: pack, install the tarball, scaffold Node, Express, and Hono apps, boot their
 #    servers and verify a live HTTP response. Kept out of the per-PR ci.yml job.
 # 2) publish: on a version tag, publish the CLI and npm-create wrapper to npm
 #    using OIDC trusted publishing (no long-lived token; provenance is attached
