@@ -16,7 +16,7 @@ const projectRoot = path.join(__dirname, '..', '..');
 // assert a live HTTP response. This exercises exactly what a consumer gets from
 // `npm install servergen`, not the repo working tree.
 
-const PORTS = { express: 5310, node: 5311 };
+const PORTS = { express: 5310, node: 5311, typescript: 5312 };
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 // Sleep helper for retry backoff.
@@ -135,14 +135,24 @@ describe('published package smoke test', () => {
    * Generate an app with the INSTALLED CLI from a fresh temp cwd.
    * Returns the absolute path of the generated app directory.
    */
-  const generate = (name, framework, port) => {
+  const generate = (name, framework, port, extraArgs = []) => {
     const workDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'servergen-smoke-work-')
     );
     workDirs.push(workDir);
     execFileSync(
       'node',
-      [installedBin, '-n', name, '-f', framework, '-p', String(port), '--skip-install'],
+      [
+        installedBin,
+        '-n',
+        name,
+        '-f',
+        framework,
+        '-p',
+        String(port),
+        ...extraArgs,
+        '--skip-install',
+      ],
       { cwd: workDir, encoding: 'utf-8', timeout: 120000 }
     );
     return path.join(workDir, name);
@@ -225,6 +235,70 @@ describe('published package smoke test', () => {
       expect(health.body).toContain('"status":"ok"');
 
       // The server shuts down cleanly on SIGTERM (exit 0, not killed by signal).
+      const { code, signal } = await stopProcess(child, 'SIGTERM');
+      child = undefined;
+      expect(signal).toBeNull();
+      expect(code).toBe(0);
+    },
+    240000
+  );
+
+  it(
+    'generates, builds, tests, boots a TypeScript Express app, serves HTTP, and stops cleanly',
+    async () => {
+      const port = PORTS.typescript;
+      const appDir = generate('smokets', 'express', port, ['--typescript']);
+
+      // Required files exist.
+      expect(fs.existsSync(path.join(appDir, 'src', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'package.json'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'routes', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'controllers'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'model'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'test', 'app.test.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'tsconfig.json'))).toBe(true);
+      expect(fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8')).toContain(
+        `EXPOSE ${port}`
+      );
+      expect(fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8')).toContain(
+        `http://localhost:${port}`
+      );
+
+      const gitignorePath = path.join(appDir, '.gitignore');
+      expect(fs.existsSync(gitignorePath)).toBe(true);
+      expect(fs.readFileSync(gitignorePath, 'utf-8')).toContain('dist');
+
+      execFileSync(npmCmd, ['install', '--no-audit', '--no-fund'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        timeout: 180000,
+      });
+
+      execFileSync(npmCmd, ['run', 'build'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        timeout: 120000,
+      });
+
+      execFileSync(npmCmd, ['test'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        timeout: 120000,
+      });
+
+      child = spawn('node', ['dist/index.js'], {
+        cwd: appDir,
+        env: { ...process.env, PORT: String(port) },
+        stdio: 'ignore',
+      });
+      const root = await waitForHttp(port, '/');
+      expect(root.status).toBe(200);
+      expect(root.body).toContain('Welcome to ServerGen!');
+
+      const health = await httpGet(port, '/health');
+      expect(health.status).toBe(200);
+      expect(health.body).toContain('"status":"ok"');
+
       const { code, signal } = await stopProcess(child, 'SIGTERM');
       child = undefined;
       expect(signal).toBeNull();

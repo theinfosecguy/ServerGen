@@ -27,6 +27,9 @@ const readPkg = (folderDir) =>
 const readIndex = (folderDir) =>
   fs.readFileSync(path.join(folderDir, 'index.js'), 'utf-8');
 
+const readTypeScriptIndex = (folderDir) =>
+  fs.readFileSync(path.join(folderDir, 'src', 'index.ts'), 'utf-8');
+
 describe('file_generator', () => {
   let logSpy;
 
@@ -162,6 +165,57 @@ describe('file_generator', () => {
       createExpressApp(templatesDir, testDir, 'my-app', null, false);
       expect(logSpy).toHaveBeenCalledWith('Generating Express application..');
     });
+
+    it('generates TypeScript Express source, config, test and tsconfig files', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false, {
+        typescript: true,
+      });
+
+      expect(fs.existsSync(path.join(testDir, 'src', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'src', 'routes', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'test', 'app.test.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'tsconfig.json'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'index.js'))).toBe(false);
+      expect(fs.existsSync(path.join(testDir, 'routes', 'index.js'))).toBe(false);
+    });
+
+    it('writes TypeScript Express package scripts and dev dependencies', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false, {
+        typescript: true,
+      });
+      const pkg = readPkg(testDir);
+
+      expect(pkg.main).toBe('dist/index.js');
+      expect(pkg.scripts.dev).toBe('tsx watch src/index.ts');
+      expect(pkg.scripts.build).toBe('tsc');
+      expect(pkg.scripts.start).toBe('node dist/index.js');
+      expect(pkg.scripts.test).toBe('node --import tsx --test test/**/*.test.ts');
+      expect(pkg.devDependencies.typescript).toBe(DEPENDENCY_VERSIONS.typescript);
+      expect(pkg.devDependencies.tsx).toBe(DEPENDENCY_VERSIONS.tsx);
+      expect(pkg.devDependencies['@types/express']).toBe(
+        DEPENDENCY_VERSIONS['@types/express']
+      );
+      expect(pkg.devDependencies.nodemon).toBeUndefined();
+    });
+
+    it('uses the TypeScript config-variant index template when config is true', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, true, {
+        typescript: true,
+      });
+
+      expect(readTypeScriptIndex(testDir)).toContain(
+        "import { connectDatabase, mongoose } from './config/mongoose'"
+      );
+    });
+
+    it('logs the TypeScript express generation message', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false, {
+        typescript: true,
+      });
+      expect(logSpy).toHaveBeenCalledWith(
+        'Generating TypeScript Express application..'
+      );
+    });
   });
 
   describe('createNodeApp', () => {
@@ -284,6 +338,29 @@ describe('file_generator', () => {
       expect(index).not.toContain('// Views');
     });
 
+    it('injects the view-engine line into src/index.ts for TypeScript apps', () => {
+      fs.ensureDirSync(path.join(testDir, 'src'));
+      fs.writeFileSync(path.join(testDir, 'src', 'index.ts'), '// Views\nconst x = 1;');
+      fs.ensureDirSync(path.join(testDir, 'src', 'routes'));
+      fs.copyFileSync(
+        path.join(templatesDir, 'typescript', 'src', 'routes', 'index.ts'),
+        path.join(testDir, 'src', 'routes', 'index.ts')
+      );
+
+      handleViews(testDir, viewsDir, 'ejs', { typescript: true });
+
+      const index = readTypeScriptIndex(testDir);
+      const routes = fs.readFileSync(
+        path.join(testDir, 'src', 'routes', 'index.ts'),
+        'utf-8'
+      );
+
+      expect(index).toContain("app.set('view engine','ejs')");
+      expect(index).toContain("app.set('views', path.join(process.cwd(), 'views'));");
+      expect(routes).toContain("res.status(200).render('ve_ejs'");
+      expect(fs.existsSync(path.join(testDir, 'views', 've_ejs.ejs'))).toBe(true);
+    });
+
     it('handles hbs as a valid view', () => {
       fs.writeFileSync(path.join(testDir, 'index.js'), '// Views\nconst x = 1;');
       handleViews(testDir, viewsDir, 'hbs');
@@ -343,6 +420,15 @@ describe('file_generator', () => {
       handleConfig(testDir, templatesDir);
       expect(readIndex(testDir)).toBe(sentinel);
     });
+
+    it('creates src/config/mongoose.ts for TypeScript apps', () => {
+      handleConfig(testDir, templatesDir, { typescript: true });
+      const configFile = path.join(testDir, 'src', 'config', 'mongoose.ts');
+      expect(fs.existsSync(configFile)).toBe(true);
+      expect(fs.readFileSync(configFile, 'utf-8')).toContain(
+        "import mongoose from 'mongoose'"
+      );
+    });
   });
 
   describe('addGitIgnore', () => {
@@ -382,6 +468,17 @@ describe('file_generator', () => {
       expect(dockerfile).toContain('EXPOSE 8080');
       expect(dockerfile).not.toContain('EXPOSE 3000');
     });
+
+    it('uses the TypeScript Dockerfile when configured', () => {
+      addDockerSupport(testDir, templatesDir, { typescript: true });
+      const dockerfile = fs.readFileSync(
+        path.join(testDir, 'Dockerfile'),
+        'utf-8'
+      );
+
+      expect(dockerfile).toContain('npm run build');
+      expect(dockerfile).toContain('dist/index.js');
+    });
   });
 
   describe('addReadme', () => {
@@ -407,6 +504,15 @@ describe('file_generator', () => {
 
       expect(readme).toContain('# my-api');
       expect(readme).not.toContain('# Project Name');
+    });
+
+    it('uses the TypeScript README when configured', () => {
+      addReadme(testDir, templatesDir, { appName: 'ts-api', typescript: true });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+
+      expect(readme).toContain('# ts-api');
+      expect(readme).toContain('src/index.ts');
+      expect(readme).toContain('npm run build');
     });
 
     it('updates Node README localhost URLs when configured', () => {

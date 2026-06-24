@@ -89,6 +89,11 @@ describe('AppGenerator', () => {
       expect(gen.skipInstall).toBe(false);
     });
 
+    it('defaults typescript to false when not provided', () => {
+      const gen = new AppGenerator({ appName: 'myapp', config }, deps);
+      expect(gen.typescript).toBe(false);
+    });
+
     it('computes folderDir as cwd/appName', () => {
       const gen = new AppGenerator({ appName: 'myapp', config }, deps);
       expect(gen.folderDir).toBe(path.join(testDir, 'myapp'));
@@ -175,7 +180,32 @@ describe('AppGenerator', () => {
         path.join(testDir, 'myapp'),
         'myapp',
         'ejs',
-        true
+        true,
+        { typescript: false }
+      );
+    });
+
+    it('passes the TypeScript option to createExpressApp', async () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'express',
+          typescript: true,
+          skipInstall: true,
+          config,
+        },
+        deps
+      );
+
+      await gen.generate();
+
+      expect(deps.fileCreator.createExpressApp).toHaveBeenCalledWith(
+        config.paths.templates.express,
+        path.join(testDir, 'myapp'),
+        'myapp',
+        undefined,
+        undefined,
+        { typescript: true }
       );
     });
 
@@ -296,7 +326,28 @@ describe('AppGenerator', () => {
       expect(deps.fileCreator.handleViews).toHaveBeenCalledWith(
         path.join(testDir, 'myapp'),
         config.paths.templates.views,
-        'ejs'
+        'ejs',
+        { typescript: false }
+      );
+    });
+
+    it('passes the TypeScript option to handleViews', () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'express',
+          view: 'ejs',
+          typescript: true,
+          config,
+        },
+        deps
+      );
+      gen.setupViews();
+      expect(deps.fileCreator.handleViews).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        config.paths.templates.views,
+        'ejs',
+        { typescript: true }
       );
     });
   });
@@ -310,7 +361,21 @@ describe('AppGenerator', () => {
       gen.setupDatabase();
       expect(deps.fileCreator.handleConfig).toHaveBeenCalledWith(
         path.join(testDir, 'myapp'),
-        config.paths.templates.express
+        config.paths.templates.express,
+        { typescript: false }
+      );
+    });
+
+    it('passes the TypeScript option to handleConfig', () => {
+      const gen = new AppGenerator(
+        { appName: 'myapp', db: true, typescript: true, config },
+        deps
+      );
+      gen.setupDatabase();
+      expect(deps.fileCreator.handleConfig).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        config.paths.templates.express,
+        { typescript: true }
       );
     });
 
@@ -343,17 +408,17 @@ describe('AppGenerator', () => {
       expect(deps.fileCreator.addDockerSupport).toHaveBeenCalledWith(
         folderDir,
         templatesDir,
-        { db: false, port: 3000 }
+        { db: false, port: 3000, typescript: false }
       );
       expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
         folderDir,
         templatesDir,
-        { appName: 'myapp', db: false, port: 3000 }
+        { appName: 'myapp', db: false, port: 3000, typescript: false }
       );
       expect(deps.fileCreator.addEnvExample).toHaveBeenCalledWith(
         folderDir,
         templatesDir,
-        { db: false, port: 3000 }
+        { db: false, port: 3000, typescript: false }
       );
     });
   });
@@ -390,6 +455,27 @@ describe('AppGenerator', () => {
       expect(updated).toContain('process.env.PORT || 8080');
       expect(updated).not.toContain('process.env.PORT || 3000');
       expect(deps.logger.step).toHaveBeenCalledWith('Port configured to 8080');
+    });
+
+    it('rewrites the port in src/index.ts for TypeScript apps', () => {
+      const folderDir = path.join(testDir, 'myapp');
+      fs.ensureDirSync(path.join(folderDir, 'src'));
+      const indexPath = path.join(folderDir, 'src', 'index.ts');
+      fs.writeFileSync(
+        indexPath,
+        'const port = process.env.PORT || 3000;\napp.listen(port);\n',
+        'utf8'
+      );
+
+      const gen = new AppGenerator(
+        { appName: 'myapp', port: 8080, typescript: true, config },
+        deps
+      );
+      gen.configurePort();
+
+      const updated = fs.readFileSync(indexPath, 'utf8');
+      expect(updated).toContain('process.env.PORT || 8080');
+      expect(updated).not.toContain('process.env.PORT || 3000');
     });
 
     it('replaces every occurrence of the default port token', () => {
