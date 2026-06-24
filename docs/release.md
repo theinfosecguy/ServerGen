@@ -124,6 +124,13 @@ publishes `packages/create-servergen`. Before tagging, configure npm trusted
 publishing for both npm packages against this GitHub repository and the
 `Release` workflow so both publishes use OIDC provenance.
 
+If `create-servergen` has never been published before, bootstrap the package
+name before relying on trusted publishing. npm trusted publisher settings are
+configured from an existing package's settings page, so the first publish may
+require an npm owner to publish the wrapper manually or with a short-lived token.
+After the package exists, configure its trusted publisher for the `Release`
+workflow before using tag-based releases.
+
 The package smoke test packs and installs both local tarballs, then verifies the
 wrapper can create an app through the installed `create-servergen` bin. The
 wrapper publish is ordered after the root CLI publish because it depends on the
