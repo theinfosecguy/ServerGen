@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Add Express TypeScript Postgres/Prisma support with `--db postgres --orm prisma`.
+- Replace the legacy bare `--db` MongoDB shortcut with explicit `--db mongodb`.
+- Generate Prisma 7 config, schema, seed script, lazy Prisma client, `/users` routes/controllers, Docker Compose, OpenAPI `/users` paths, and database-aware generated tests.
+- Update interactive mode, docs, package metadata, and package smoke coverage for the Postgres/Prisma path.
+
 ## 2.4.0 - 2026-06-24
 
 - Add Hono framework support with TypeScript-first generated apps, Docker files, generated tests, and JSON routes for `/`, `/about`, `/contact`, and `/health`.

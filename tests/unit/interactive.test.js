@@ -55,7 +55,7 @@ describe('interactive prompts', () => {
       'Framework (express/node/hono) [express]: ',
       'Language (TypeScript/JavaScript) [TypeScript]: ',
       'OpenAPI spec? (Y/n): ',
-      'Database (none/mongodb) [none]: ',
+      'Database (none/mongodb/postgres) [none]: ',
       'View engine (none/ejs/pug/hbs) [none]: ',
       'Port [3000]: ',
       'Install dependencies? (Y/n): ',
@@ -81,7 +81,7 @@ describe('interactive prompts', () => {
       framework: 'express',
       typescript: false,
       openapi: false,
-      db: true,
+      db: 'mongodb',
       view: 'pug',
       port: 8080,
       skipInstall: true,
@@ -98,7 +98,7 @@ describe('interactive prompts', () => {
       'ts',
       'maybe',
       'y',
-      'postgres',
+      'mysql',
       'mongodb',
       'jade',
       'hbs',
@@ -116,7 +116,7 @@ describe('interactive prompts', () => {
       framework: 'express',
       typescript: true,
       openapi: true,
-      db: true,
+      db: 'mongodb',
       view: 'hbs',
       port: 3001,
       skipInstall: false,
@@ -125,7 +125,7 @@ describe('interactive prompts', () => {
     expect(harness.messages.join('')).toContain('Please choose express, node, or hono.');
     expect(harness.messages.join('')).toContain('Please choose TypeScript or JavaScript.');
     expect(harness.messages.join('')).toContain('Please answer yes or no.');
-    expect(harness.messages.join('')).toContain('Please choose none or mongodb.');
+    expect(harness.messages.join('')).toContain('Please choose none, mongodb, or postgres.');
     expect(harness.messages.join('')).toContain('Please choose none, ejs, pug, or hbs.');
     expect(harness.messages.join('')).toContain('Please enter a port between 1 and 65535.');
   });
@@ -140,6 +140,35 @@ describe('interactive prompts', () => {
 
     expect(result.port).toBe(8088);
     expect(harness.prompts).toContain('Port [8088]: ');
+  });
+
+  it('supports Postgres and Prisma for TypeScript Express apps', async () => {
+    const harness = createPromptHarness([
+      'api',
+      'express',
+      'typescript',
+      'y',
+      'postgres',
+      '',
+      '',
+      'n',
+    ]);
+
+    const result = await promptForInteractiveOptions(harness);
+
+    expect(result).toEqual({
+      name: 'api',
+      framework: 'express',
+      typescript: true,
+      openapi: true,
+      db: 'postgres',
+      orm: 'prisma',
+      view: undefined,
+      port: 3000,
+      skipInstall: true,
+    });
+    expect(harness.prompts).toContain('ORM (prisma) [prisma]: ');
+    expect(harness.prompts).not.toContain('View engine (none/ejs/pug/hbs) [none]: ');
   });
 
   it('uses implicit TypeScript and skips Express-only prompts for Hono', async () => {

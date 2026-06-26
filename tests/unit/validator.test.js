@@ -126,7 +126,7 @@ describe('validateOptions', () => {
 
     it('rejects --db with the node framework', () => {
       const result = validateOptions(
-        { framework: 'node', db: true },
+        { framework: 'node', db: 'mongodb' },
         validationRules
       );
       expect(result.isValid).toBe(false);
@@ -135,19 +135,104 @@ describe('validateOptions', () => {
 
     it('rejects --db with the hono framework', () => {
       const result = validateOptions(
-        { framework: 'hono', db: true },
+        { framework: 'hono', db: 'mongodb' },
         validationRules
       );
       expect(result.isValid).toBe(false);
       expect(result.errors.some((e) => e.includes('express framework'))).toBe(true);
     });
 
-    it('allows --db with the express framework', () => {
+    it('allows --db mongodb with the express framework', () => {
+      const result = validateOptions(
+        { framework: 'express', db: 'mongodb' },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('rejects the legacy boolean database shortcut', () => {
       const result = validateOptions(
         { framework: 'express', db: true },
         validationRules
       );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('Invalid database'))).toBe(true);
+    });
+
+    it('allows explicit mongodb with the express framework', () => {
+      const result = validateOptions(
+        { framework: 'express', db: 'mongodb' },
+        validationRules
+      );
       expect(result.isValid).toBe(true);
+    });
+
+    it('allows postgres with prisma for Express TypeScript apps', () => {
+      const result = validateOptions(
+        { framework: 'express', typescript: true, db: 'postgres', orm: 'prisma' },
+        validationRules
+      );
+      expect(result.isValid).toBe(true);
+    });
+
+    it('rejects postgres without prisma', () => {
+      const result = validateOptions(
+        { framework: 'express', typescript: true, db: 'postgres' },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('requires --orm prisma'))).toBe(true);
+    });
+
+    it('rejects postgres without TypeScript', () => {
+      const result = validateOptions(
+        { framework: 'express', db: 'postgres', orm: 'prisma' },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('requires --typescript'))).toBe(true);
+    });
+
+    it('rejects postgres with views', () => {
+      const result = validateOptions(
+        {
+          framework: 'express',
+          typescript: true,
+          db: 'postgres',
+          orm: 'prisma',
+          view: 'ejs',
+        },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('does not support --view'))).toBe(true);
+    });
+
+    it('rejects --orm without postgres', () => {
+      const result = validateOptions(
+        { framework: 'express', db: 'mongodb', orm: 'prisma' },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('--orm option'))).toBe(true);
+    });
+
+    it('rejects invalid database values', () => {
+      const result = validateOptions(
+        { framework: 'express', db: 'mysql' },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('Invalid database'))).toBe(true);
+    });
+
+    it('rejects invalid ORM values', () => {
+      const result = validateOptions(
+        { framework: 'express', db: 'postgres', orm: 'sequelize' },
+        validationRules
+      );
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some((e) => e.includes('Invalid ORM'))).toBe(true);
     });
 
     it('rejects --openapi with the node framework', () => {
