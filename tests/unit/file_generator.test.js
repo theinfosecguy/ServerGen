@@ -9,6 +9,7 @@ import {
   createNodeApp,
   handleViews,
   handleConfig,
+  handlePostgresPrisma,
   addGitIgnore,
   addDockerSupport,
   addReadme,
@@ -209,6 +210,32 @@ describe('file_generator', () => {
       expect(readTypeScriptIndex(testDir)).toContain(
         "import { connectDatabase, mongoose } from './config/mongoose'"
       );
+    });
+
+    it('writes Postgres Prisma package metadata for TypeScript Express apps', () => {
+      createExpressApp(templatesDir, testDir, 'my-app', null, false, {
+        db: 'postgres',
+        orm: 'prisma',
+        typescript: true,
+      });
+      const pkg = readPkg(testDir);
+      const index = readTypeScriptIndex(testDir);
+      const tsconfig = fs.readJsonSync(path.join(testDir, 'tsconfig.json'));
+
+      expect(pkg.type).toBe('module');
+      expect(pkg.dependencies['@prisma/client']).toBe(
+        DEPENDENCY_VERSIONS['@prisma/client']
+      );
+      expect(pkg.dependencies['@prisma/adapter-pg']).toBe(
+        DEPENDENCY_VERSIONS['@prisma/adapter-pg']
+      );
+      expect(pkg.dependencies.pg).toBe(DEPENDENCY_VERSIONS.pg);
+      expect(pkg.devDependencies.prisma).toBe(DEPENDENCY_VERSIONS.prisma);
+      expect(pkg.scripts['db:generate']).toBe('prisma generate');
+      expect(pkg.scripts['db:migrate']).toBe('prisma migrate dev');
+      expect(index).toContain("import router from './routes/index.js'");
+      expect(index).toContain('pathToFileURL(process.argv[1])');
+      expect(tsconfig.compilerOptions.module).toBe('NodeNext');
     });
 
     it('logs the TypeScript express generation message', () => {
@@ -490,6 +517,57 @@ describe('file_generator', () => {
     });
   });
 
+  describe('handlePostgresPrisma', () => {
+    it('adds Prisma, Docker Compose, user routes, controller, and tests', () => {
+      createExpressApp(templatesDir, testDir, 'pg-api', null, false, {
+        db: 'postgres',
+        orm: 'prisma',
+        typescript: true,
+      });
+      handlePostgresPrisma(testDir, templatesDir, 'pg-api');
+
+      expect(fs.existsSync(path.join(testDir, 'docker-compose.yml'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'prisma.config.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'prisma', 'schema.prisma'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'prisma', 'seed.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'src', 'lib', 'prisma.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'src', 'routes', 'users.ts'))).toBe(true);
+      expect(
+        fs.existsSync(path.join(testDir, 'src', 'controllers', 'usersController.ts'))
+      ).toBe(true);
+      expect(fs.existsSync(path.join(testDir, 'test', 'users.test.ts'))).toBe(true);
+      expect(logSpy).toHaveBeenCalledWith('Configuring Postgres with Prisma..');
+    });
+
+    it('mounts the generated users router and uses ESM test imports', () => {
+      createExpressApp(templatesDir, testDir, 'pg-api', null, false, {
+        db: 'postgres',
+        orm: 'prisma',
+        typescript: true,
+      });
+      handlePostgresPrisma(testDir, templatesDir, 'pg-api');
+
+      const routes = fs.readFileSync(
+        path.join(testDir, 'src', 'routes', 'index.ts'),
+        'utf-8'
+      );
+      const appTest = fs.readFileSync(
+        path.join(testDir, 'test', 'app.test.ts'),
+        'utf-8'
+      );
+      const schema = fs.readFileSync(
+        path.join(testDir, 'prisma', 'schema.prisma'),
+        'utf-8'
+      );
+
+      expect(routes).toContain("import usersRouter from './users.js'");
+      expect(routes).toContain('router.use(usersRouter);');
+      expect(appTest).toContain("from '../src/index.js'");
+      expect(schema).toContain('pg-api API');
+      expect(schema).toContain('model User');
+    });
+  });
+
   describe('addGitIgnore', () => {
     it('copies the .gitignore file', () => {
       addGitIgnore(testDir, templatesDir);
@@ -538,6 +616,22 @@ describe('file_generator', () => {
       expect(dockerfile).toContain('npm run build');
       expect(dockerfile).toContain('dist/index.js');
     });
+
+    it('uses the Postgres Prisma Dockerfile when configured', () => {
+      addDockerSupport(testDir, templatesDir, {
+        db: 'postgres',
+        orm: 'prisma',
+        typescript: true,
+      });
+      const dockerfile = fs.readFileSync(
+        path.join(testDir, 'Dockerfile'),
+        'utf-8'
+      );
+
+      expect(dockerfile).toContain('npm run db:generate');
+      expect(dockerfile).toContain('npm run build');
+      expect(dockerfile).toContain('dist/index.js');
+    });
   });
 
   describe('addReadme', () => {
@@ -580,6 +674,20 @@ describe('file_generator', () => {
       expect(readme).toContain('# ts-api');
       expect(readme).toContain('src/index.ts');
       expect(readme).toContain('npm run build');
+    });
+
+    it('documents Postgres Prisma setup when configured', () => {
+      addReadme(testDir, templatesDir, {
+        appName: 'pg-api',
+        db: 'postgres',
+        orm: 'prisma',
+        typescript: true,
+      });
+      const readme = fs.readFileSync(path.join(testDir, 'README.md'), 'utf-8');
+
+      expect(readme).toContain('## Postgres + Prisma');
+      expect(readme).toContain('docker compose up -d');
+      expect(readme).toContain('npm run db:migrate');
     });
 
     it('updates Node README localhost URLs when configured', () => {
@@ -655,6 +763,25 @@ describe('file_generator', () => {
       expect(spec).toContain('Rendered welcome page');
       expect(spec).not.toContain('$ref: \'#/components/schemas/WelcomeResponse\'');
     });
+
+    it('documents users paths and schemas for Postgres Prisma apps', () => {
+      addOpenApiSpec(testDir, {
+        appName: 'pg-api',
+        db: 'postgres',
+        orm: 'prisma',
+        port: 3000,
+      });
+      const spec = fs.readFileSync(
+        path.join(testDir, 'docs', 'openapi.yaml'),
+        'utf-8'
+      );
+
+      expect(spec).toContain('/users:');
+      expect(spec).toContain('/users/{id}:');
+      expect(spec).toContain('operationId: createUser');
+      expect(spec).toContain('User:');
+      expect(spec).toContain('CreateUserInput:');
+    });
   });
 
   describe('addEnvExample', () => {
@@ -675,11 +802,32 @@ describe('file_generator', () => {
       expect(env).not.toContain('MONGODB_URI');
     });
 
-    it('keeps MongoDB env values when MongoDB is enabled', () => {
+    it('does not treat legacy db true as MongoDB env config', () => {
       addEnvExample(testDir, templatesDir, { db: true, port: 8080 });
+      const env = fs.readFileSync(path.join(testDir, '.env.example'), 'utf-8');
+      expect(env).toContain('PORT=8080');
+      expect(env).not.toContain('MONGODB_URI');
+    });
+
+    it('keeps MongoDB env values when MongoDB is enabled', () => {
+      addEnvExample(testDir, templatesDir, { db: 'mongodb', port: 8080 });
       const env = fs.readFileSync(path.join(testDir, '.env.example'), 'utf-8');
       expect(env).toContain('MONGODB_URI=mongodb://localhost/your_database_name');
       expect(env).toContain('PORT=8080');
+    });
+
+    it('writes DATABASE_URL when Postgres Prisma is enabled', () => {
+      addEnvExample(testDir, templatesDir, {
+        db: 'postgres',
+        orm: 'prisma',
+        port: 8080,
+      });
+      const env = fs.readFileSync(path.join(testDir, '.env.example'), 'utf-8');
+      expect(env).toContain(
+        'DATABASE_URL="postgresql://servergen:servergen@localhost:5432/servergen?schema=public"'
+      );
+      expect(env).toContain('PORT=8080');
+      expect(env).not.toContain('MONGODB_URI');
     });
 
     it('does nothing when the template .env.example is absent', () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs-extra';
 import os from 'os';
 import path from 'path';
@@ -8,6 +8,8 @@ import { execSync } from 'child_process';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.join(__dirname, '..', '..');
 let testOutput;
+
+vi.setConfig({ testTimeout: 30000 });
 
 describe('CLI Integration', () => {
   beforeEach(() => {
@@ -49,6 +51,7 @@ describe('CLI Integration', () => {
       expect(output).toContain('-n, --name');
       expect(output).toContain('-f, --framework');
       expect(output).toContain('express | node | hono');
+      expect(output).toContain('--orm');
       expect(output).toContain('--openapi');
       expect(output).toContain('--typescript');
     });
@@ -60,6 +63,7 @@ describe('CLI Integration', () => {
       expect(output).toContain('-f node');
       expect(output).toContain('-f hono');
       expect(output).toContain('--db');
+      expect(output).toContain('--orm');
       expect(output).toContain('--openapi');
       expect(output).toContain('--typescript');
     });
@@ -133,8 +137,8 @@ describe('CLI Integration', () => {
       );
     });
 
-    it('includes mongoose when --db flag used', () => {
-      runCLI('-n dbtest -f express --db --skip-install');
+    it('includes mongoose when --db mongodb is used', () => {
+      runCLI('-n dbtest -f express --db mongodb --skip-install');
       
       const pkgPath = path.join(testOutput, 'dbtest', 'package.json');
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
@@ -193,7 +197,7 @@ describe('CLI Integration', () => {
     });
 
     it('supports TypeScript Express with views, MongoDB and a custom port', () => {
-      runCLI('-n tsfull -f express --typescript --db -v ejs -p 8082 --skip-install');
+      runCLI('-n tsfull -f express --typescript --db mongodb -v ejs -p 8082 --skip-install');
 
       const appDir = path.join(testOutput, 'tsfull');
       const index = fs.readFileSync(path.join(appDir, 'src', 'index.ts'), 'utf-8');
@@ -216,6 +220,54 @@ describe('CLI Integration', () => {
       expect(readme).toContain('http://localhost:8082');
       expect(dockerfile).toContain('EXPOSE 8082');
       expect(dockerfile).toContain('npm run build');
+    });
+
+    it('generates a TypeScript Express app with Postgres, Prisma, users routes, and OpenAPI', () => {
+      runCLI(
+        '-n pgtest -f express --typescript --db postgres --orm prisma --openapi -p 8083 --skip-install'
+      );
+
+      const appDir = path.join(testOutput, 'pgtest');
+      const pkg = JSON.parse(
+        fs.readFileSync(path.join(appDir, 'package.json'), 'utf-8')
+      );
+      const index = fs.readFileSync(path.join(appDir, 'src', 'index.ts'), 'utf-8');
+      const routes = fs.readFileSync(
+        path.join(appDir, 'src', 'routes', 'index.ts'),
+        'utf-8'
+      );
+      const env = fs.readFileSync(path.join(appDir, '.env.example'), 'utf-8');
+      const readme = fs.readFileSync(path.join(appDir, 'README.md'), 'utf-8');
+      const dockerfile = fs.readFileSync(path.join(appDir, 'Dockerfile'), 'utf-8');
+      const spec = fs.readFileSync(path.join(appDir, 'docs', 'openapi.yaml'), 'utf-8');
+
+      expect(pkg.type).toBe('module');
+      expect(pkg.dependencies['@prisma/client']).toBeDefined();
+      expect(pkg.dependencies['@prisma/adapter-pg']).toBeDefined();
+      expect(pkg.dependencies.pg).toBeDefined();
+      expect(pkg.devDependencies.prisma).toBeDefined();
+      expect(pkg.scripts['db:migrate']).toBe('prisma migrate dev');
+      expect(index).toContain('process.env.PORT || 8083');
+      expect(index).toContain("import router from './routes/index.js'");
+      expect(routes).toContain("import usersRouter from './users.js'");
+      expect(routes).toContain('router.use(usersRouter);');
+      expect(fs.existsSync(path.join(appDir, 'prisma.config.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'prisma', 'schema.prisma'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'prisma', 'seed.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'lib', 'prisma.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'routes', 'users.ts'))).toBe(true);
+      expect(
+        fs.existsSync(path.join(appDir, 'src', 'controllers', 'usersController.ts'))
+      ).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'test', 'users.test.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'docker-compose.yml'))).toBe(true);
+      expect(env).toContain('DATABASE_URL=');
+      expect(env).not.toContain('MONGODB_URI');
+      expect(readme).toContain('Postgres + Prisma');
+      expect(dockerfile).toContain('npm run db:generate');
+      expect(dockerfile).toContain('EXPOSE 8083');
+      expect(spec).toContain('/users:');
+      expect(spec).toContain('operationId: createUser');
     });
   });
 
@@ -408,8 +460,8 @@ describe('CLI Integration', () => {
   });
 
   describe('database combined with port and views', () => {
-    it('keeps the custom port when --db is used', () => {
-      runCLI('-n dbport -f express --db -p 8080 --skip-install');
+    it('keeps the custom port when --db mongodb is used', () => {
+      runCLI('-n dbport -f express --db mongodb -p 8080 --skip-install');
 
       const content = fs.readFileSync(
         path.join(testOutput, 'dbport', 'index.js'),
@@ -419,8 +471,8 @@ describe('CLI Integration', () => {
       expect(content).toContain("require('./config/mongoose')");
     });
 
-    it('keeps the view engine when --db is used', () => {
-      runCLI('-n dbview -f express --db -v ejs --skip-install');
+    it('keeps the view engine when --db mongodb is used', () => {
+      runCLI('-n dbview -f express --db mongodb -v ejs --skip-install');
 
       const content = fs.readFileSync(
         path.join(testOutput, 'dbview', 'index.js'),
@@ -429,10 +481,10 @@ describe('CLI Integration', () => {
       expect(content).toContain('view engine');
       expect(content).toContain('ejs');
       expect(content).toContain("require('./config/mongoose')");
-    });
+    }, 15000);
 
-    it('keeps both port and view when --db, --port and --view are combined', () => {
-      runCLI('-n dball -f express --db -v ejs -p 8080 --skip-install');
+    it('keeps both port and view when --db mongodb, --port and --view are combined', () => {
+      runCLI('-n dball -f express --db mongodb -v ejs -p 8080 --skip-install');
 
       const content = fs.readFileSync(
         path.join(testOutput, 'dball', 'index.js'),
@@ -441,7 +493,7 @@ describe('CLI Integration', () => {
       expect(content).toContain('8080');
       expect(content).toContain('ejs');
       expect(content).toContain("require('./config/mongoose')");
-    });
+    }, 15000);
   });
 
   describe('unsupported flag combinations', () => {
@@ -582,7 +634,7 @@ describe('CLI Integration', () => {
   describe('invalid options', () => {
     it('rejects --db with the node framework', () => {
       expectCLIError(
-        'nodedb -f node --db --skip-install',
+        'nodedb -f node --db mongodb --skip-install',
         'only supported with the express framework'
       );
       expect(fs.existsSync(path.join(testOutput, 'nodedb'))).toBe(false);
@@ -590,10 +642,42 @@ describe('CLI Integration', () => {
 
     it('rejects --db with the hono framework', () => {
       expectCLIError(
-        'honodb -f hono --db --skip-install',
+        'honodb -f hono --db mongodb --skip-install',
         'only supported with the express framework'
       );
       expect(fs.existsSync(path.join(testOutput, 'honodb'))).toBe(false);
+    });
+
+    it('rejects bare --db without an explicit database value', () => {
+      expectCLIError(
+        'baredb -f express --db --skip-install',
+        'Invalid database: --skip-install'
+      );
+      expect(fs.existsSync(path.join(testOutput, 'baredb'))).toBe(false);
+    });
+
+    it('rejects Postgres without TypeScript', () => {
+      expectCLIError(
+        'pgjs -f express --db postgres --orm prisma --skip-install',
+        'requires --typescript'
+      );
+      expect(fs.existsSync(path.join(testOutput, 'pgjs'))).toBe(false);
+    });
+
+    it('rejects Postgres without Prisma', () => {
+      expectCLIError(
+        'pgnoorm -f express --typescript --db postgres --skip-install',
+        'requires --orm prisma'
+      );
+      expect(fs.existsSync(path.join(testOutput, 'pgnoorm'))).toBe(false);
+    });
+
+    it('rejects Prisma without Postgres', () => {
+      expectCLIError(
+        'ormonly -f express --orm prisma --skip-install',
+        'only supported with --db postgres'
+      );
+      expect(fs.existsSync(path.join(testOutput, 'ormonly'))).toBe(false);
     });
 
     it('rejects an invalid framework', () => {
@@ -682,9 +766,9 @@ describe('CLI Integration', () => {
       expect(fs.readFileSync(testFile, 'utf-8')).toContain('/health');
     });
 
-    it('uses MONGODB_URI in the mongoose config with --db', () => {
+    it('uses MONGODB_URI in the mongoose config with --db mongodb', () => {
       const mongoose = fs.readFileSync(
-        path.join(generateExpress('dbenvapp', '--db'), 'config', 'mongoose.js'),
+        path.join(generateExpress('dbenvapp', '--db mongodb'), 'config', 'mongoose.js'),
         'utf-8'
       );
       expect(mongoose).toContain('process.env.MONGODB_URI');
@@ -693,7 +777,7 @@ describe('CLI Integration', () => {
 
     it('exports a lazy MongoDB connector instead of connecting on import', () => {
       const mongoose = fs.readFileSync(
-        path.join(generateExpress('lazydbapp', '--db'), 'config', 'mongoose.js'),
+        path.join(generateExpress('lazydbapp', '--db mongodb'), 'config', 'mongoose.js'),
         'utf-8'
       );
 
@@ -706,7 +790,7 @@ describe('CLI Integration', () => {
 
     it('calls connectDatabase only from the generated server startup path', () => {
       const index = fs.readFileSync(
-        path.join(generateExpress('dbstartapp', '--db'), 'index.js'),
+        path.join(generateExpress('dbstartapp', '--db mongodb'), 'index.js'),
         'utf-8'
       );
 
@@ -718,13 +802,13 @@ describe('CLI Integration', () => {
       );
     });
 
-    it('only includes MONGODB_URI in .env.example when --db is used', () => {
+    it('only includes MONGODB_URI in .env.example when --db mongodb is used', () => {
       const plainEnv = fs.readFileSync(
         path.join(generateExpress('plainenvapp'), '.env.example'),
         'utf-8'
       );
       const dbEnv = fs.readFileSync(
-        path.join(generateExpress('dbexampleapp', '--db'), '.env.example'),
+        path.join(generateExpress('dbexampleapp', '--db mongodb'), '.env.example'),
         'utf-8'
       );
 

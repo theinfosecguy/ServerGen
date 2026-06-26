@@ -17,6 +17,7 @@ function makeDeps() {
       createExpressApp: vi.fn(),
       handleViews: vi.fn(),
       handleConfig: vi.fn(),
+      handlePostgresPrisma: vi.fn(),
       addGitIgnore: vi.fn(),
       addDockerSupport: vi.fn(),
       addReadme: vi.fn(),
@@ -182,7 +183,7 @@ describe('AppGenerator', () => {
           appName: 'myapp',
           framework: 'express',
           view: 'ejs',
-          db: true,
+          db: 'mongodb',
           skipInstall: true,
           config,
         },
@@ -220,8 +221,34 @@ describe('AppGenerator', () => {
         path.join(testDir, 'myapp'),
         'myapp',
         undefined,
-        undefined,
+        false,
         { typescript: true }
+      );
+    });
+
+    it('passes Postgres Prisma options to createExpressApp', async () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'express',
+          db: 'postgres',
+          orm: 'prisma',
+          typescript: true,
+          skipInstall: true,
+          config,
+        },
+        deps
+      );
+
+      await gen.generate();
+
+      expect(deps.fileCreator.createExpressApp).toHaveBeenCalledWith(
+        config.paths.templates.express,
+        path.join(testDir, 'myapp'),
+        'myapp',
+        undefined,
+        false,
+        { db: 'postgres', orm: 'prisma', typescript: true }
       );
     });
 
@@ -405,9 +432,9 @@ describe('AppGenerator', () => {
   });
 
   describe('setupDatabase', () => {
-    it('calls handleConfig when db is true', () => {
+    it('calls handleConfig when db is mongodb', () => {
       const gen = new AppGenerator(
-        { appName: 'myapp', db: true, config },
+        { appName: 'myapp', db: 'mongodb', config },
         deps
       );
       gen.setupDatabase();
@@ -420,7 +447,7 @@ describe('AppGenerator', () => {
 
     it('passes the TypeScript option to handleConfig', () => {
       const gen = new AppGenerator(
-        { appName: 'myapp', db: true, typescript: true, config },
+        { appName: 'myapp', db: 'mongodb', typescript: true, config },
         deps
       );
       gen.setupDatabase();
@@ -446,13 +473,43 @@ describe('AppGenerator', () => {
       expect(deps.fileCreator.handleConfig).not.toHaveBeenCalled();
     });
 
-    it('does not call handleConfig for the hono framework', () => {
+    it('does not treat legacy db true as MongoDB', () => {
       const gen = new AppGenerator(
-        { appName: 'myapp', framework: 'hono', db: true, config },
+        { appName: 'myapp', db: true, config },
         deps
       );
       gen.setupDatabase();
       expect(deps.fileCreator.handleConfig).not.toHaveBeenCalled();
+    });
+
+    it('does not call handleConfig for the hono framework', () => {
+      const gen = new AppGenerator(
+        { appName: 'myapp', framework: 'hono', db: 'mongodb', config },
+        deps
+      );
+      gen.setupDatabase();
+      expect(deps.fileCreator.handleConfig).not.toHaveBeenCalled();
+    });
+
+    it('calls handlePostgresPrisma for Express Postgres Prisma apps', () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'express',
+          db: 'postgres',
+          orm: 'prisma',
+          typescript: true,
+          config,
+        },
+        deps
+      );
+      gen.setupDatabase();
+      expect(deps.fileCreator.handleConfig).not.toHaveBeenCalled();
+      expect(deps.fileCreator.handlePostgresPrisma).toHaveBeenCalledWith(
+        path.join(testDir, 'myapp'),
+        config.paths.templates.express,
+        'myapp'
+      );
     });
   });
 
@@ -507,6 +564,55 @@ describe('AppGenerator', () => {
         config.paths.templates.express,
         { appName: 'myapp', db: false, openapi: true, port: 8080, typescript: false }
       );
+    });
+
+    it('passes Postgres Prisma support options to support-file helpers', () => {
+      const gen = new AppGenerator(
+        {
+          appName: 'myapp',
+          framework: 'express',
+          db: 'postgres',
+          orm: 'prisma',
+          openapi: true,
+          typescript: true,
+          config,
+        },
+        deps
+      );
+
+      gen.addSupportFiles();
+
+      const folderDir = path.join(testDir, 'myapp');
+      const supportOptions = {
+        db: 'postgres',
+        openapi: true,
+        orm: 'prisma',
+        port: 3000,
+        typescript: true,
+      };
+      expect(deps.fileCreator.addDockerSupport).toHaveBeenCalledWith(
+        folderDir,
+        config.paths.templates.express,
+        supportOptions
+      );
+      expect(deps.fileCreator.addReadme).toHaveBeenCalledWith(
+        folderDir,
+        config.paths.templates.express,
+        { ...supportOptions, appName: 'myapp' }
+      );
+      expect(deps.fileCreator.addEnvExample).toHaveBeenCalledWith(
+        folderDir,
+        config.paths.templates.express,
+        supportOptions
+      );
+      expect(deps.fileCreator.addOpenApiSpec).toHaveBeenCalledWith(folderDir, {
+        appName: 'myapp',
+        framework: 'express',
+        db: 'postgres',
+        orm: 'prisma',
+        port: 3000,
+        view: undefined,
+      });
     });
 
     it('adds an OpenAPI spec for hono apps when requested', () => {

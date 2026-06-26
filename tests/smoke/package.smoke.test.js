@@ -17,7 +17,7 @@ const createPackageRoot = path.join(projectRoot, 'packages', 'create-servergen')
 // assert a live HTTP response. This exercises exactly what a consumer gets from
 // `npm install servergen`, not the repo working tree.
 
-const PORTS = { express: 5310, node: 5311, typescript: 5312, hono: 5313 };
+const PORTS = { express: 5310, node: 5311, typescript: 5312, hono: 5313, postgres: 5314 };
 const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const createBinName =
   process.platform === 'win32' ? 'create-servergen.cmd' : 'create-servergen';
@@ -354,6 +354,94 @@ describe('published package smoke test', () => {
       expect(code).toBe(0);
     },
     240000
+  );
+
+  it(
+    'generates, builds, tests, boots a Postgres Prisma Express app, and serves health checks',
+    async () => {
+      const port = PORTS.postgres;
+      const appDir = generate('smokepg', 'express', port, [
+        '--typescript',
+        '--db',
+        'postgres',
+        '--orm',
+        'prisma',
+        '--openapi',
+      ]);
+
+      expect(fs.existsSync(path.join(appDir, 'src', 'index.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'prisma.config.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'prisma', 'schema.prisma'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'lib', 'prisma.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'src', 'routes', 'users.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'test', 'users.test.ts'))).toBe(true);
+      expect(fs.existsSync(path.join(appDir, 'docker-compose.yml'))).toBe(true);
+
+      const pkg = fs.readJsonSync(path.join(appDir, 'package.json'));
+      expect(pkg.type).toBe('module');
+      expect(pkg.dependencies['@prisma/client']).toBeDefined();
+      expect(pkg.dependencies['@prisma/adapter-pg']).toBeDefined();
+      expect(pkg.dependencies.pg).toBeDefined();
+      expect(pkg.devDependencies.prisma).toBeDefined();
+
+      const spec = fs.readFileSync(path.join(appDir, 'docs', 'openapi.yaml'), 'utf-8');
+      expect(spec).toContain('/users:');
+      expect(spec).toContain('/users/{id}:');
+      expect(spec).toContain(`http://localhost:${port}`);
+
+      execFileSync(npmCmd, ['install', '--no-audit', '--no-fund'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        timeout: 240000,
+      });
+
+      execFileSync(npmCmd, ['run', 'db:generate'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        env: {
+          ...process.env,
+          DATABASE_URL: 'postgresql://servergen:servergen@localhost:5432/servergen?schema=public',
+        },
+        timeout: 120000,
+      });
+
+      execFileSync(npmCmd, ['run', 'build'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        timeout: 120000,
+      });
+
+      execFileSync(npmCmd, ['test'], {
+        cwd: appDir,
+        encoding: 'utf-8',
+        env: { ...process.env, DATABASE_URL: '' },
+        timeout: 120000,
+      });
+
+      child = spawn('node', ['dist/index.js'], {
+        cwd: appDir,
+        env: { ...process.env, PORT: String(port) },
+        stdio: 'ignore',
+      });
+
+      try {
+        const health = await waitForHttp(port, '/health');
+        expect(health.status).toBe(200);
+        expect(health.body).toContain('"status":"ok"');
+
+        const root = await httpGet(port, '/');
+        expect(root.status).toBe(200);
+        expect(root.body).toContain('Welcome to ServerGen!');
+      } finally {
+        if (child && !child.killed) {
+          const { code, signal } = await stopProcess(child, 'SIGTERM');
+          expect(signal).toBeNull();
+          expect(code).toBe(0);
+        }
+        child = undefined;
+      }
+    },
+    360000
   );
 
   it(
