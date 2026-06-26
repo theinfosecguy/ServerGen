@@ -10,6 +10,7 @@ import path from 'path';
 import { createRequire } from 'module';
 import { program } from 'commander';
 import { getConfig } from '../lib/config.js';
+import { normalizeDatabaseOption, normalizeOrmOption } from '../lib/database.js';
 import { validateOptions } from '../lib/validator.js';
 import { createGenerator } from '../index.js';
 import * as fileName from '../lib/fileName.js';
@@ -34,7 +35,8 @@ program
   .option('-n, --name <name>', 'name of the app to create')
   .option('-f, --framework <type>', 'framework: express | node | hono', 'express')
   .option('-v, --view <type>', 'view engine (express only): ejs | pug | hbs')
-  .option('--db', 'add Mongoose and a MongoDB config (express only)')
+  .option('--db <type>', 'database: mongodb | postgres')
+  .option('--orm <type>', 'ORM for supported databases: prisma')
   .option('--openapi', 'generate an OpenAPI spec file (express and hono)')
   .option('--typescript', 'generate a TypeScript app where supported')
   .option('-p, --port <number>', 'port for the generated app (1-65535)', '3000')
@@ -48,7 +50,8 @@ Examples:
   $ servergen my-api -f node          create a Node app
   $ servergen my-api -f hono          create a Hono app
   $ servergen my-api -v ejs           Express app with the EJS view engine
-  $ servergen my-api --db             Express app with Mongoose/MongoDB
+  $ servergen my-api --db mongodb     Express app with Mongoose/MongoDB
+  $ servergen my-api --typescript --db postgres --orm prisma
   $ servergen my-api --openapi        API app with docs/openapi.yaml
   $ servergen my-api --typescript     TypeScript where supported
   $ servergen my-api -p 8080          use a custom port
@@ -129,11 +132,15 @@ const main = async () => {
 
   const port = parseInt(resolvedOptions.port, 10) || 3000;
   const skipInstall = resolvedOptions.skipInstall || false;
+  const db = normalizeDatabaseOption(resolvedOptions.db);
+  const orm = normalizeOrmOption(resolvedOptions.orm);
 
   logger.debug('Parsed configuration', {
     appName,
+    db,
     port,
     framework: resolvedOptions.framework,
+    orm,
     skipInstall,
     typescript: resolvedOptions.typescript,
   });
@@ -142,7 +149,8 @@ const main = async () => {
     appName,
     framework: resolvedOptions.framework,
     view: resolvedOptions.view,
-    db: resolvedOptions.db,
+    db,
+    orm,
     openapi: resolvedOptions.openapi,
     port,
     skipInstall,
