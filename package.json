@@ -1,7 +1,7 @@
 {
   "name": "servergen",
-  "version": "2.4.0",
-  "description": "CLI that scaffolds production-ready Node.js, Express, and Hono apps with practical defaults, optional views, MongoDB, OpenAPI, and Docker support.",
+  "version": "2.5.0",
+  "description": "CLI that scaffolds production-ready Node.js, Express, and Hono apps with practical defaults, optional views, MongoDB, Postgres, Prisma, OpenAPI, and Docker support.",
   "type": "module",
   "main": "./index.js",
   "engines": {
@@ -38,6 +38,9 @@
     "mongodb",
     "mvc",
     "nodejs",
+    "postgres",
+    "postgresql",
+    "prisma",
     "scaffold",
     "scaffolding"
   ],

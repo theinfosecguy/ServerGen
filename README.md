@@ -10,7 +10,7 @@
 ServerGen is an npm CLI for scaffolding Node.js, Express, and Hono API projects
 with practical defaults: MVC-style folders, health checks, Docker files,
 ready-to-run npm scripts, optional Express views, and optional
-Mongoose/MongoDB config.
+Mongoose/MongoDB or Postgres/Prisma config.
 
 ## 30-Second Quick Start
 
@@ -53,8 +53,9 @@ npx servergen@latest my-api
 | `--framework node` | Plain Node.js HTTP server with `/`, `/about`, `/contact`, and `/health`, plus MVC folders, Docker files, `.gitignore`, generated `README.md`, and `package.json`. |
 | `--framework hono` | TypeScript Hono API app with `src/index.ts`, `tsconfig.json`, `test/app.test.ts`, Docker files, `.gitignore`, generated `README.md`, and `package.json`. |
 | `--view ejs`, `pug`, or `hbs` | Adds the selected Express view template and renders it from `/`. |
-| `--db` | Adds Mongoose, `config/mongoose.js`, and `MONGODB_URI` in `.env.example` for Express apps. |
-| `--openapi` | Adds `docs/openapi.yaml`, a static OpenAPI 3.0 spec for generated Express and Hono routes. |
+| `--db mongodb` | Adds Mongoose, `config/mongoose.js`, and `MONGODB_URI` in `.env.example` for Express apps. |
+| `--typescript --db postgres --orm prisma` | Adds Prisma 7, a Postgres Docker Compose service, `prisma/schema.prisma`, `prisma.config.ts`, `src/lib/prisma.ts`, `/users` routes/controllers, generated route tests, and `DATABASE_URL` in `.env.example` for Express TypeScript apps. |
+| `--openapi` | Adds `docs/openapi.yaml`, a static OpenAPI 3.0 spec for generated Express and Hono routes. Postgres/Prisma apps include `/users` paths. |
 
 Generated apps include `npm start` and `npm run dev`. Express apps also include
 `npm test`. TypeScript Express and Hono apps also include `npm run build`.
@@ -74,7 +75,8 @@ servergen [options] [name]
   -n, --name <name>       name of the app to create
   -f, --framework <type>  framework: express | node | hono (default: "express")
   -v, --view <type>       view engine (express only): ejs | pug | hbs
-  --db                    add Mongoose and a MongoDB config (express only)
+  --db <type>             database: mongodb | postgres
+  --orm <type>            ORM for supported databases: prisma
   --openapi               generate an OpenAPI spec file (express and hono)
   --typescript            generate a TypeScript app where supported
   -p, --port <number>     port for the generated app (1-65535) (default: "3000")
@@ -91,7 +93,8 @@ npx servergen@latest my-api
 npx servergen@latest my-api --framework node
 npx servergen@latest my-api --framework hono
 npx servergen@latest my-api --view ejs
-npx servergen@latest my-api --db
+npx servergen@latest my-api --db mongodb
+npx servergen@latest my-api --typescript --db postgres --orm prisma
 npx servergen@latest my-api --openapi
 npx servergen@latest my-api --typescript
 npx servergen@latest my-api --port 8080

@@ -27,7 +27,7 @@ Hono does not support the Express-only view and database options:
 
 ```bash
 npx --yes servergen@latest hello-hono --framework hono --view ejs
-npx --yes servergen@latest hello-hono --framework hono --db
+npx --yes servergen@latest hello-hono --framework hono --db mongodb
 ```
 
 Each command fails before creating the app directory.

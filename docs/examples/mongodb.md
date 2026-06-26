@@ -5,10 +5,10 @@ Use this when you want an Express app with Mongoose installed and a MongoDB conn
 ## Command
 
 ```bash
-npx --yes servergen@latest mongo-api --db
+npx --yes servergen@latest mongo-api --db mongodb
 ```
 
-`--db` is Express-only. ServerGen rejects `--framework node --db`.
+`--db mongodb` is Express-only. ServerGen rejects `--framework node --db mongodb`.
 
 ## What Gets Generated
 
