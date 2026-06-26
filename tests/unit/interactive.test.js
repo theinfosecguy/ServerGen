@@ -151,7 +151,6 @@ describe('interactive prompts', () => {
       'postgres',
       '',
       '',
-      '',
       'n',
     ]);
 
@@ -169,6 +168,7 @@ describe('interactive prompts', () => {
       skipInstall: true,
     });
     expect(harness.prompts).toContain('ORM (prisma) [prisma]: ');
+    expect(harness.prompts).not.toContain('View engine (none/ejs/pug/hbs) [none]: ');
   });
 
   it('uses implicit TypeScript and skips Express-only prompts for Hono', async () => {
