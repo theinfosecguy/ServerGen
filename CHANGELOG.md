@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.5.0 - 2026-06-27
 
 - Add Express TypeScript Postgres/Prisma support with `--db postgres --orm prisma`.
 - Replace the legacy bare `--db` MongoDB shortcut with explicit `--db mongodb`.
